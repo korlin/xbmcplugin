@@ -12,7 +12,7 @@ except: Emulating = False
 # Script constants
 __scriptname__ = "XBMC Earth"
 __author__ = "MrLight"
-__version__ = "0.3"
+__version__ = "0.4"
 __date__ = '30-12-2008'
 xbmc.output(__scriptname__ + " Version: " + __version__ + " Date: " + __date__)
 
@@ -65,8 +65,8 @@ class MainClass(xbmcgui.WindowXML):
 	zoom = 8
 	xbmcearth_communication = Xbmcearth_communication()
 	markercontainer = []
-	map_size_x = 3	#Größe der angezeigten Karte (3 Tiles) muss ungerade sein
-	map_size_y = 3  #Größe der angezeigten Karte (3 Tiles) muss ungerade sein
+	map_size_x = 3	#Groeße der angezeigten Karte (3 Tiles) muss ungerade sein
+	map_size_y = 3  #Groeße der angezeigten Karte (3 Tiles) muss ungerade sein
 	map_pos_x_windowed = 320
 	map_pos_y_windowed = 270
 	pic_size_windowed = 190
@@ -164,6 +164,11 @@ class MainClass(xbmcgui.WindowXML):
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
 				pass
+		for button_id in range( 110, 114 ):
+			try:
+				self.getControl( button_id ).setLabel( __language__( button_id ) )
+			except:
+				pass
 		#Start Backgroundthread
 		self.background = background_thread(self)
 		self.background.start()
@@ -193,6 +198,30 @@ class MainClass(xbmcgui.WindowXML):
 			self.showYoutube()
 		elif controlID == 106:
 			self.search_Route()
+		elif controlID == 110:
+			self.hybrid = 1
+			self.drawSAT()
+		elif controlID == 111:
+			self.hybrid = 0
+			self.drawSAT()
+		elif controlID == 112:
+			self.hybrid = 2
+			self.drawHYBRID()
+		elif controlID == 113:
+			self.hybrid = 3
+			self.drawHYBRID()
+		elif controlID == 114:
+			self.moveLEFT()
+		elif controlID == 115:
+			self.moveRIGHT()
+		elif controlID == 116:
+			self.moveUP()
+		elif controlID == 117:
+			self.moveDOWN()
+		elif controlID == 118:
+			self.zoomIN()
+		elif controlID == 119:
+			self.zoomOUT()
 		elif ( 50 <= controlID <= 59 ):
 			self.zoom_to_select(int(self.getCurrentListPosition()))
 
@@ -222,41 +251,13 @@ class MainClass(xbmcgui.WindowXML):
 				self.map_mov()
 				self.getControl(2000).setVisible(1)
 			if action.getButtonCode() == KEYBOARD_UP or action.getButtonCode() == REMOTE_UP or action.getButtonCode() == pad_button_dpad_up:
-				if maploaded == 1:
-					coord_dist =[]
-					coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
-					coord_dist = googleearth_coordinates.getLatLong(coord)
-					self.lat = self.lat + coord_dist[3]
-					#if lat > 90.0:
-					#	lat -=180.0
-					self.drawSAT()
+				self.moveUP()
 			if action.getButtonCode() == KEYBOARD_DOWN or action.getButtonCode() == REMOTE_DOWN or action.getButtonCode() == pad_button_dpad_down:
-				if maploaded == 1:
-					coord_dist =[]
-					coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
-					coord_dist = googleearth_coordinates.getLatLong(coord)
-					self.lat = self.lat - coord_dist[3]
-					#if lat < -90.0:
-					#	lat += 180.0
-					self.drawSAT()
+				self.moveDOWN()
 			if action.getButtonCode() == KEYBOARD_LEFT or action.getButtonCode() == REMOTE_LEFT or action.getButtonCode() == pad_button_dpad_left:
-				if maploaded == 1:
-					coord_dist =[]
-					coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
-					coord_dist = googleearth_coordinates.getLatLong(coord)
-					self.lon = self.lon - coord_dist[2]
-					#if lon < 0.0:
-					#	lon +=360.0
-					self.drawSAT()	
+				self.moveLEFT()
 			if action.getButtonCode() == KEYBOARD_RIGHT or action.getButtonCode() == REMOTE_RIGHT or action.getButtonCode() == pad_button_dpad_right:
-				if maploaded == 1:
-					coord_dist =[]
-					coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
-					coord_dist = googleearth_coordinates.getLatLong(coord)
-					self.lon = self.lon + coord_dist[2]
-					#if lon > 360.0:
-					#	lon -= 360.0
-					self.drawSAT()
+				self.moveRIGHT()
 		if self.map_move == 2:
 			if action.getButtonCode() == 61467 or action.getButtonCode() == REMOTE_BACK or action.getButtonCode() == pad_button_back:
 				self.map_move = 0
@@ -268,15 +269,9 @@ class MainClass(xbmcgui.WindowXML):
 				self.getControl(2000).setVisible(1)
 		# do always
 		if action.getButtonCode() == KEYBOARD_PG_DW or action.getButtonCode() == REMOTE_4 or action.getButtonCode() == pad_button_left_trigger:
-			if maploaded == 1:
-				self.zoom += 1
-				self.getControl(200).setLabel( str(action.getButtonCode()) + " | " + str(self.zoom) )
-				self.drawSAT()
+			self.zoomOUT()
 		if action.getButtonCode() == KEYBOARD_PG_UP or action.getButtonCode() == REMOTE_1 or action.getButtonCode() == pad_button_right_trigger:
-			if maploaded == 1:
-				self.zoom -= 1
-				self.getControl(200).setLabel( str(action.getButtonCode()) + " | " + str(self.zoom) )
-				self.drawSAT()
+			self.zoomIN()
 		if action.getButtonCode() == KEYBOARD_INSERT or action.getButtonCode() == REMOTE_INFO or action.getButtonCode() == pad_button_white:
 			if maploaded == 1:
 				if self.hybrid == 1:
@@ -313,7 +308,42 @@ class MainClass(xbmcgui.WindowXML):
 							self.satBlocks[x][y].setVisible(1)
 				self.drawHYBRID()
 		
-	
+	def moveUP(self):
+		if maploaded == 1:
+			coord_dist =[]
+			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+			coord_dist = Googleearth_Coordinates().getLatLong(coord)
+			self.lat = self.lat + coord_dist[3]
+			self.drawSAT()
+	def moveDOWN(self):
+		if maploaded == 1:
+			coord_dist =[]
+			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+			coord_dist = Googleearth_Coordinates().getLatLong(coord)
+			self.lat = self.lat - coord_dist[3]
+			self.drawSAT()
+	def moveLEFT(self):
+		if maploaded == 1:
+			coord_dist =[]
+			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+			coord_dist = Googleearth_Coordinates().getLatLong(coord)
+			self.lon = self.lon - coord_dist[2]
+			self.drawSAT()	
+	def moveRIGHT(self):
+		if maploaded == 1:
+			coord_dist =[]
+			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+			coord_dist = Googleearth_Coordinates().getLatLong(coord)
+			self.lon = self.lon + coord_dist[2]
+			self.drawSAT()
+	def zoomOUT(self):
+		if maploaded == 1:
+			self.zoom += 1
+			self.drawSAT()	
+	def zoomIN(self):
+		if maploaded == 1:
+			self.zoom -= 1
+			self.drawSAT()
 		
 	def goodbye(self):
 		global run_backgroundthread
@@ -322,8 +352,8 @@ class MainClass(xbmcgui.WindowXML):
 			run_backgroundthread = 0
 			self.cleanup_thread.join(1.0)
 			self.background.join(1.0)
-		except: 
-			LOG( LOG_ERROR, self.__class__.__name__, "[%s]", sys.exc_info()[ 1 ] )
+		except:
+			pass
 		self.close()
 		
 	def connect(self):
@@ -1260,47 +1290,54 @@ class draw_sat(Thread):
 	def run(self):
 		global maploaded
 		maploaded = 0
-		googleearth_coordinates = Googleearth_Coordinates()
-		Lon = self.window.lon
-		Lat = self.window.lat
-		Zoom = self.window.zoom
-		coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
-		tileCoord = []
-		tileCoord = googleearth_coordinates.getTileCoord(Lon, Lat, Zoom-1)
-		resultset =[]
-		coord_dist = googleearth_coordinates.getLatLong(coord)
-		
-		#/maps?spn=0.008115,0.021458&t=k&z=15&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ&vp=50.927032,11.601734&ev=p&v=24
-		spn = str(coord_dist[2])+','+str(coord_dist[3])
-		t = 'k'
-		z = str(Zoom)
-		vp = str(coord_dist[0]) + ',' + str(coord_dist[1])
-		ev = 'p'
-		v = '24'
-		
-		self.xbmcearth_communication.connect("maps.google.com")
-		copyright_xml = self.xbmcearth_communication.get_Maps_Copyright(referer_url, maps_key, spn, t, z, vp, ev, v)
-		
-		satlist = []
-		map_center_x = int(self.window.map_size_x / 2)
-		map_center_y = int(self.window.map_size_y / 2)
-		for x in range(self.window.map_size_x):
-			for y in range(self.window.map_size_y):
-				Lon = (self.window.lon - coord_dist[2]*map_center_x)+coord_dist[2]*x
-				Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y
-				#if Lon > 360.0:
-				#	Lon -= 360.0
-				#elif Lon < 0.0:
-				#	Lon += 360.0
-				#if Lat < -90.0:
-				#	Lat += 180.0
-				#elif Lat > 90.0:
-				#	Lat -= 180.0u
-				coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
-				current = get_file(URL_satPic + coord, "Sat\\z"+str(Zoom)+"\\"+coord+".png", referer_url,self.satBlocks[x][y])
-				satlist.append(current)
-				current.start()
-				current.join(100)
+		if self.window.hybrid <= 1:
+			googleearth_coordinates = Googleearth_Coordinates()
+			Lon = self.window.lon
+			Lat = self.window.lat
+			Zoom = self.window.zoom
+			coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
+			tileCoord = []
+			tileCoord = googleearth_coordinates.getTileCoord(Lon, Lat, Zoom-1)
+			resultset =[]
+			coord_dist = googleearth_coordinates.getLatLong(coord)
+			
+			#/maps?spn=0.008115,0.021458&t=k&z=15&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ&vp=50.927032,11.601734&ev=p&v=24
+			spn = str(coord_dist[2])+','+str(coord_dist[3])
+			t = 'k'
+			z = str(Zoom)
+			vp = str(coord_dist[0]) + ',' + str(coord_dist[1])
+			ev = 'p'
+			v = '24'
+			
+			self.xbmcearth_communication.connect("maps.google.com")
+			copyright_xml = self.xbmcearth_communication.get_Maps_Copyright(referer_url, maps_key, spn, t, z, vp, ev, v)
+			
+			satlist = []
+			map_center_x = int(self.window.map_size_x / 2)
+			map_center_y = int(self.window.map_size_y / 2)
+			for x in range(self.window.map_size_x):
+				for y in range(self.window.map_size_y):
+					Lon = (self.window.lon - coord_dist[2]*map_center_x)+coord_dist[2]*x
+					Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y
+					#if Lon > 360.0:
+					#	Lon -= 360.0
+					#elif Lon < 0.0:
+					#	Lon += 360.0
+					#if Lat < -90.0:
+					#	Lat += 180.0
+					#elif Lat > 90.0:
+					#	Lat -= 180.0u
+					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
+					current = get_file(URL_satPic + coord, "Sat\\z"+str(Zoom)+"\\"+coord+".png", referer_url,self.satBlocks[x][y])
+					satlist.append(current)
+					current.start()
+					current.join(100)
+		else:
+			try:
+				for x in range(self.window.map_size_x):
+					for y in range(self.window.map_size_y):
+						self.satBlocks[x][y].setVisible(False)
+			except: pass
 		maploaded = 1
 			
 		
@@ -1379,11 +1416,9 @@ class draw_map(Thread):
 					current.join(100)
 		else:
 			try:
-				map_center_x = int(self.map_size_x / 2)
-				map_center_y = int(self.map_size_y / 2)
-				for x in range(self.map_size_x):
-					for y in range(self.map_size_y):
-						self.mapBlocks[x][y].setVisible(false)
+				for x in range(self.window.map_size_x):
+					for y in range(self.window.map_size_y):
+						self.mapBlocks[x][y].setVisible(False)
 			except: pass
 		maploaded = 1
 
@@ -1396,44 +1431,31 @@ class file_remove(Thread):
 		self.mainWindow = MainWindow
 	
 	def run(self):
-		for folder in glob.glob(TEMPFOLDER + "\\*\\*"):        
-			# select the type of file, for instance *.jpg or all files *.*    
-			if (run_backgroundthread > 0):
-				i = 0
-				while(run_backgroundthread > 0 and i < 10):
-					time.sleep(1)
-					i += 1
-				date_file_list = []
-				if len(glob.glob(folder + '/*.*'))>50:
-					for file in glob.glob(folder + '/*.*'):               
-						stats = os.stat(file)    
-						lastmod_date = time.localtime(stats[8])        
-						date_file_tuple = lastmod_date, file        
-						date_file_list.append(date_file_tuple) 
-					date_file_list.sort()
-					for file in date_file_list[0:len(glob.glob(folder + '/*.*'))-50]:      
-						try:                                
-							os.remove(file[1])  # commented out for testing            
-						except OSError:                
-							print 'Could not remove', file_name
-		i = 0
-		while(run_backgroundthread > 0 and i < 120):
-			time.sleep(1)
-			i += 1
-		"""	
-		#-print '-'*50
-		for folder in glob.glob(TEMPFOLDER):   
-			print len(folder)
-			for image in glob.glob(folder + '/*.png'):              
-				stats = os.stat(image)                   
-				lastmodDate = time.localtime(stats[8])        
-				expDate = time.strptime(self.date, '%Y-%m-%d')               
-				if expDate > lastmodDate:            
-					try:                                
-						os.remove(image)  # commented out for testing            
-					except OSError:                
-						print 'Could not remove', image
-		"""
+		while(run_backgroundthread > 0 ):
+			for folder in glob.glob(TEMPFOLDER + "\\*\\*"):        
+				# select the type of file, for instance *.jpg or all files *.*    
+				if (run_backgroundthread > 0):
+					i = 0
+					#while(run_backgroundthread > 0 and i < 2):
+					#	time.sleep(1)
+					#	i += 1
+					date_file_list = []
+					if len(glob.glob(folder + '/*.*'))>50:
+						for file in glob.glob(folder + '/*.*'):               
+							stats = os.stat(file)    
+							lastmod_date = time.localtime(stats[8])        
+							date_file_tuple = lastmod_date, file        
+							date_file_list.append(date_file_tuple) 
+						date_file_list.sort()
+						for file in date_file_list[0:len(glob.glob(folder + '/*.*'))-50]:      
+							try:                                
+								os.remove(file[1])      
+							except OSError:                
+								print 'Could not remove', file_name
+			i = 0
+			while(run_backgroundthread > 0 and i < 120):
+				time.sleep(1)
+				i += 1
 
 
 class background_thread(Thread):
