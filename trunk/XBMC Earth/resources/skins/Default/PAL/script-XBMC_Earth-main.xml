@@ -80,6 +80,13 @@
 			<animation effect="slide" time="500" start="0,88" end="0,0" acceleration="-1.1">Visible</animation>
 			<animation effect="slide" time="500" start="0,0" end="0,88" acceleration="1.1">Hidden</animation>  
 		</control>
+		<control type="videowindow" id="1999">
+			<description>video preview window</description>
+			<posx>35</posx>
+			<posy>400</posy>
+			<width>130</width>
+			<height>107</height>
+		</control>
 		 <control type="group" id="9000">
 			<posx>0</posx>
 			<posy>0</posy>
@@ -210,7 +217,7 @@
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="105">
-				<description>Route</description>
+				<description>Youtube</description>
 				<posx>0</posx>
 				<posy>342</posy>
 				<width>160</width>
@@ -229,8 +236,8 @@
 				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
-			<!--<control type="button" id="106">
-				<description>Search Button</description>
+			<control type="button" id="106">
+				<description>Route</description>
 				<posx>0</posx>
 				<posy>379</posy>
 				<width>160</width>
@@ -246,26 +253,6 @@
 				<onright>50</onright>
 				<onup>105</onup>
 				<ondown>107</ondown>
-				<onclick>-</onclick>
-			</control>
-            <!-- ** Required ** Do not change id or type-->
-			<!--<control type="button" id="107">
-				<description>Settings Button</description>
-				<posx>0</posx>
-				<posy>416</posy>
-				<width>160</width>
-				<height>33</height>
-				<texturefocus>amt-button-focus.png</texturefocus>
-				<texturenofocus>amt-button-nofocus.png</texturenofocus>
-				<font>font13</font>
-				<textcolor>FFFFFFFF</textcolor>
-				<disabledcolor>60ffffff</disabledcolor>
-				<textoffsetx>17</textoffsetx>
-				<aligny>center</aligny>
-				<onleft>2070</onleft>
-				<onright>50</onright>
-				<onup>106</onup>
-				<ondown>108</ondown>
 				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
@@ -733,7 +720,7 @@
                     <aspectratio>keep</aspectratio>
                 </control>-->
             </control>
-
+			
             <!-- ** Required ** Do not change id or type-->
             <control type="label" id="206">
 				<description>Place Title</description>
