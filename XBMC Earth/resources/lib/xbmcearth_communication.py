@@ -420,6 +420,7 @@ class get_file(Thread):
 			os.utime(f, times)
 		if self.imgBlocks != "":
 			self.path = TEMPFOLDER + self.filename
+			self.imgBlocks.setVisible(True)
 			self.imgBlocks.setImage(self.path)
 		return
 	
