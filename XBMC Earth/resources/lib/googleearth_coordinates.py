@@ -44,6 +44,15 @@ class Googleearth_Coordinates:
 				
 		return keyholeString;
 		
+	def getDistance ( self, latitudeA, longitudeA, latitudeB, longitudeB ):
+		EQUATORIAL_RADIUS_KM = 6378.137
+
+		latA = latitudeA / 180.0 * math.pi
+		lonA = longitudeA / 180.0 * math.pi
+		latB = latitudeB / 180.0 * math.pi
+		lonB = longitudeB / 180.0 * math.pi
+		return math.acos (math.sin (latA) * math.sin (latB) + math.cos (latA) * math.cos (latB) * math.cos (lonB - lonA)) * EQUATORIAL_RADIUS_KM;
+		
 	"""
 	returns a Rectangle2D with x = lon, y = lat, width=lonSpan, height=latSpan for a keyhole string.
 	"""

@@ -5,8 +5,9 @@
 		<string id="102">Panoramio</string>
 		<string id="103">Flickr</string>
 		<string id="104">locr</string>
-		<string id="105">Route planen</string>
-		
+		<string id="105">Youtube</string>
+		<string id="106">Route planen</string>
+
 		<!-- Strings -->
 		<string id="10001">Start-Punkt (z.B. Berlin)</string>
 		<string id="10002">Ziel (z.B. Hamburg Reeperbahn)</string>

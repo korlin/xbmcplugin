@@ -41,6 +41,23 @@ from global_data import *
 TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp" )
 
 
+class MyPlayer( xbmc.Player ) :  
+	def __init__ ( self ): 
+		xbmc.Player.__init__( self )  
+	
+	def onPlayBackStarted(self): 	
+		x = 0
+		while x == 0:
+			try:
+				if self.getTime() > 1.0:
+					response = xbmc.executehttpapi("Action(18)")
+					x = 1
+			except:
+				time.sleep(1)
+				pass
+				
+				
+
 
 class MainClass(xbmcgui.WindowXML):
 	lon = 13.411494
@@ -64,7 +81,7 @@ class MainClass(xbmcgui.WindowXML):
 	routecontainer = dict({'enable': 0, 'linestring': ''}) 
 	piccontainer = dict({'enable': 0, 'url_query': '', 'url_pic': ''})
 	cleanup_thread = ''
-	
+	player =  MyPlayer()
 	
 	def __init__(self, *args, **kwargs):
 		global URL_satPic
@@ -79,7 +96,7 @@ class MainClass(xbmcgui.WindowXML):
 			scriptUpdated = updateScript(False, False)
 		else:
 			scriptUpdated = False
-
+		
 
 
 
@@ -138,13 +155,11 @@ class MainClass(xbmcgui.WindowXML):
 
 		self.route_pic = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.route_pic)
-		#self.makeRoute('test')
-
 		self.drawSAT()
 	
 	def onInit(self):
 		self.getControl(2001).setVisible(0)
-		for button_id in range( 100, 106 ):
+		for button_id in range( 100, 107 ):
 			try:
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
@@ -175,6 +190,8 @@ class MainClass(xbmcgui.WindowXML):
 		elif controlID == 104:
 			self.showLocr()
 		elif controlID == 105:
+			self.showYoutube()
+		elif controlID == 106:
 			self.search_Route()
 		elif ( 50 <= controlID <= 59 ):
 			self.zoom_to_select(int(self.getCurrentListPosition()))
@@ -184,7 +201,6 @@ class MainClass(xbmcgui.WindowXML):
 		pass
 			
 	def onAction(self, action):
-		self.getControl(200).setLabel( str(action.getButtonCode()) )
 		googleearth_coordinates = Googleearth_Coordinates()
 		#main_menu active
 		if self.map_move == 0:
@@ -302,6 +318,7 @@ class MainClass(xbmcgui.WindowXML):
 	def goodbye(self):
 		global run_backgroundthread
 		try:
+			self.player.stop()
 			run_backgroundthread = 0
 			self.cleanup_thread.join(1.0)
 			self.background.join(1.0)
@@ -454,6 +471,7 @@ class MainClass(xbmcgui.WindowXML):
 		coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
 		coord_dist =[]
 		coord_dist = googleearth_coordinates.getLatLong(coord)
+		self.xbmcearth_communication.connect("www.panoramio.com")
 		result = simplejson.loads(self.xbmcearth_communication.get_Panoramio(referer_url,"?order=popularity&set=public&from="+str(start)+"&to="+str(start+size)+"&minx="+ str(coord_dist[0]-coord_dist[2]) +"&miny=" + str(coord_dist[1]-coord_dist[3]) + "&maxx="+str(coord_dist[0]+coord_dist[2]*2)+"&maxy="+str(coord_dist[1]+coord_dist[3]*2)+"&size=medium"))
 		index = 0
 		resultcontainer = dict()
@@ -663,6 +681,93 @@ class MainClass(xbmcgui.WindowXML):
 			self.addItem(list_item)
 		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Locr\\small\\"+str(photo["photo_id"])+".jpg")
 		self.getControl(2001).setVisible(1)
+	
+	#Locr Support
+	def showYoutube(self):
+		self.proc_youtube_result(self.getYoutube(1,20))
+		self.piccontainer["enable"] = 1
+		self.piccontainer["type"] = "Youtube"
+	
+	def getYoutube(self, start, size):
+		Lon = self.lon
+		Lat = self.lat
+		Zoom = self.zoom
+		googleearth_coordinates = Googleearth_Coordinates()
+		coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
+		coord_dist =[]
+		coord_dist = googleearth_coordinates.getLatLong(coord)
+		center_lon = coord_dist[0]+(coord_dist[2]/2)
+		center_lat = coord_dist[1]+(coord_dist[3]/2)
+		distance = googleearth_coordinates.getDistance(center_lat,center_lon,center_lat+(coord_dist[3]*1.5),center_lon+(coord_dist[2]*1.5))
+		self.xbmcearth_communication.connect("gdata.youtube.com")
+		result = self.xbmcearth_communication.get_Youtube(referer_url,"?location="+str(center_lat)+","+str(center_lon)+"!&location-radius="+str(distance)+"km&alt=json&start-index="+str(start)+"&max-results="+str(size))
+		result = simplejson.loads(result)
+		index = 0
+		feed = result["feed"]
+		resultcontainer = dict()
+		results = feed["openSearch$totalResults"]
+		resultcontainer["count"] = results['$t']
+		resultcontainer["start"] = start + size
+		resultcontainer["size"] = size
+		videos = feed['entry']
+		placemark_seq = []
+		resultcontainer["Placemarks"] = placemark_seq
+		for video in videos:
+			placemark = dict()
+			resultcontainer["Placemarks"].append(placemark)
+			resultcontainer["Placemarks"][index]["video_id"] = video['id']['$t'].replace('http://gdata.youtube.com/feeds/api/videos/','')
+			resultcontainer["Placemarks"][index]["name"] = video["title"]['$t']
+			resultcontainer["Placemarks"][index]["description"] = video["content"]['$t'].replace('\n','')
+			resultcontainer["Placemarks"][index]["photo_file_url"] = video["media$group"]["media$thumbnail"][0]['url']
+			try:
+				resultcontainer["Placemarks"][index]["lon"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[1]
+				resultcontainer["Placemarks"][index]["lat"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[0]
+			except:
+				resultcontainer["Placemarks"][index]["lon"] = self.lon
+				resultcontainer["Placemarks"][index]["lat"] = self.lat
+			#resultcontainer["Placemarks"][index]["width"] = photos["photo_offset_width"]
+			#resultcontainer["Placemarks"][index]["height"] = photos["photo_offset_height"]
+			#resultcontainer["Placemarks"][index]["tags"] = photos["tags"]
+			#resultcontainer["Placemarks"][index]["description"] = photos["description"]
+			try:
+				resultcontainer["Placemarks"][index]["created"] = video["yt$recorded"]['$t']
+			except:
+				resultcontainer["Placemarks"][index]["created"] = video["published"]['$t']
+			#resultcontainer["Placemarks"][index]["owner_name"] = photos["user_name"]
+			index += 1
+		return resultcontainer
+	
+	def proc_youtube_result(self, result):
+		self.clearList()
+		self.delete_markers()
+		for video in result["Placemarks"]:	
+			current = get_file(video["photo_file_url"], "Youtube\\small\\"+str(video["video_id"])+".jpg", referer_url)
+			current.start()
+			current.join(1000)
+			list_item = xbmcgui.ListItem(video["name"], '', "", TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg")
+			list_item.setInfo( 'video', { "Title": video["name"], "Genre": "Create Date: " + video["created"] + " - Description: " + video["description"]}) 				
+			#list_item.setProperty('Piclink', TEMPFOLDER + "\\Youtube\\medium\\"+str(video["video_id"])+".jpg")
+			list_item.setProperty('Title', urllib.quote(video["name"]))
+			#list_item.setProperty('Genre', urllib.quote("Create Date: " + video["created"] + " - Owner: " + video["owner_name"]))
+			list_item.setProperty('lon',str(video["lon"]))
+			list_item.setProperty('lat',str(video["lat"]))
+			#list_item.setProperty('video_file_url',video["video_file_url"])
+			list_item.setProperty('video_id',str(video["video_id"]))
+			#list_item.setProperty('width',str(video["width"]))
+			#list_item.setProperty('height',str(video["height"]))
+			list_item.setProperty('type',"youtube")
+			self.markercontainer.append(marker(self, float(video["lat"]), float(video["lon"]), TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg",16,32,32,32))
+			self.addItem(list_item)
+		if  result["count"] > result["start"]*result["size"]:
+			list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+			list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Videos"})
+			list_item.setProperty('type',"youtube")
+			list_item.setProperty('next',"next")
+			list_item.setProperty('start',str(result["start"]))
+			list_item.setProperty('size',str(result["size"]))
+			self.addItem(list_item)
+		list_item = xbmcgui.ListItem(video["name"], '', "", TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg")
+		self.getControl(2001).setVisible(1)
 		
 	#Search Support
 	def search_map(self, key_txt = ''):
@@ -810,13 +915,16 @@ class MainClass(xbmcgui.WindowXML):
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "locr":
 			#locr
 			self.zoom_to_locr()
+		elif self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "youtube":
+			#youtube
+			self.zoom_to_youtube()
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('lon') != '' and self.getListItem(self.getCurrentListPosition()).getProperty('lat') != '':
-			self.lon = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
-			self.lat = float(self.getListItem(self.getCurrentListPosition()).getProperty('lat'))
+			lon_temp = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
+			lat_temp = float(self.getListItem(self.getCurrentListPosition()).getProperty('lat'))
 			if self.getListItem(self.getCurrentListPosition()).getProperty('zoom') != '':
-				self.zoom = int(self.getListItem(self.getCurrentListPosition()).getProperty('zoom'))
-			elif self.zoom > 2:
-				self.zoom = 2
+				zoom_temp = int(self.getListItem(self.getCurrentListPosition()).getProperty('zoom'))
+			elif zoom_temp > 2:
+				zoom_temp = 2
 		else:
 			self.search_map(urllib.unquote(self.getListItem(self.getCurrentListPosition()).getProperty('name')))
 			pass
@@ -908,6 +1016,40 @@ class MainClass(xbmcgui.WindowXML):
 					cpic = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic=TEMPFOLDER + "\\Locr\\medium\\"+self.getListItem(self.getCurrentListPosition()).getProperty('photo_id')+".jpg", width=self.getListItem(self.getCurrentListPosition()).getProperty('width'), height=self.getListItem(self.getCurrentListPosition()).getProperty('height'), mainWindow = self)
 					del cpic
 					self.getControl(2000).setVisible(1)
+	
+	def zoom_to_youtube(self):
+		if self.getListItem(self.getCurrentListPosition()).getProperty('next')  == "next":
+			self.proc_youtube_result(self.getYoutube(int(self.getListItem(self.getCurrentListPosition()).getProperty('start')),int(self.getListItem(self.getCurrentListPosition()).getProperty('size')) ))
+			pass
+		else:
+			self.lon = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
+			self.lat = float(self.getListItem(self.getCurrentListPosition()).getProperty('lat'))
+			if self.getListItem(self.getCurrentListPosition()).getProperty('zoom') != '':
+				self.zoom = int(self.getListItem(self.getCurrentListPosition()).getProperty('zoom'))
+			elif self.zoom > 2:
+				self.zoom = 2
+			if self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "youtube":
+				self.getControl(2000).setVisible(0)
+				#self.map_move = 2
+				googleearth_coordinates = Googleearth_Coordinates()
+				coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
+				coord_dist = googleearth_coordinates.getLatLong(coord)
+				self.lon = self.lon - coord_dist[2]
+				self.drawSAT()
+				self.xbmcearth_communication.connect("www.youtube.com")
+				result = self.xbmcearth_communication.get_Youtube_html(referer_url,"?v="+self.getListItem(self.getCurrentListPosition()).getProperty('video_id'))
+				x = result.find('var swfArgs = ')
+				result =result[x+14:result.find(';',x+15)]
+				result = simplejson.loads(result)
+				base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
+				vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
+				self.player.stop()
+				self.player.play(vid_url) 
+				self.getControl(2000).setVisible(1)
+	
+	
+	
+					
 	#handle map	
 	def map_mov(self):
 		if self.map_move == 0:
@@ -1292,6 +1434,8 @@ class file_remove(Thread):
 					except OSError:                
 						print 'Could not remove', image
 		"""
+
+
 class background_thread(Thread):
 	def __init__(self,window):
 		Thread.__init__(self)
@@ -1307,9 +1451,6 @@ class background_thread(Thread):
 			except:
 				pass
 				#LOG( LOG_ERROR, self.__class__.__name__, "[%s]", sys.exc_info()[ 1 ] )	
-
-
-
 
 
 

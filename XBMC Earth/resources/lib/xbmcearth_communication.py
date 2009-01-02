@@ -1,5 +1,5 @@
 
-import xbmc, datetime, tarfile, os, glob, urllib, httplib, sys, os.path, time, datetime
+import xbmc, datetime, tarfile, os, glob, urllib, httplib, sys, os.path, time, datetime, urllib2
 from threading import Thread
 TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp\\" )	
 
@@ -129,7 +129,57 @@ class Xbmcearth_communication:
 		f.write(data)
 		f.close()
 		return self.sData
-
+		
+	def get_Youtube(self, url, param):
+		header = {
+			"Host":"gdata.youtube.com",
+			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"Accept":"*/*",
+			"Accept-Language":"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3",
+			"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+			"Keep-Alive":"300",
+			"Proxy-Connection":"keep-alive",
+			"Referer": url} 
+		params = param
+		body = ''
+		self.sTargetUrl = "http://gdata.youtube.com/feeds/api/videos"
+		if self._request("GET",params,header, body)!=True:
+			return False
+		data = self.sData
+		fName = file
+		f = open(TEMPFOLDER + "youtube.xml", 'wb')
+		f.write(data)
+		f.close()
+		return self.sData
+	
+	def get_Youtube_html(self, url, param):
+		header = {
+			"Host":"www.youtube.com",
+			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"Accept":"*/*",
+			"Accept-Language":"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3",
+			"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+			"Keep-Alive":"300",
+			"Proxy-Connection":"keep-alive",
+			"Referer": url} 
+		params = param
+		body = ''
+		self.sTargetUrl = "http://www.youtube.com/watch"
+		if self._request("GET",params,header, body)!=True:
+			return False
+		data = self.sData
+		fName = file
+		f = open(TEMPFOLDER + "youtube.html", 'wb')
+		f.write(data)
+		f.close()
+		return self.sData
+		
+	def stream_Youtube(self, v_url):
+		request = urllib2.Request(v_url) 
+		opener = urllib2.build_opener(SRH) 
+		f = opener.open(request) 
+		vid_url = f.url 
+		return vid_url
 
 	def get_Maps_JS(self, url, key):
 		#http://maps.google.com/maps?file=api&v=2&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ
@@ -219,7 +269,7 @@ class Xbmcearth_communication:
 			print response.status, response.reason
 			return False
 		else:
-			#-print response.status, response.reason
+			#print response.status, response.reason
 			data = response.read()
 			if data != '':
 				self.sData = data
@@ -396,4 +446,14 @@ class get_file(Thread):
 		self.sTargetServer=targetserver
 		self.sTargetPort = "80"
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
+		
+class SRH(urllib2.HTTPRedirectHandler): 
+	def http_error_302(self, req, fp, code, msg, headers): 
+		result = urllib2.HTTPRedirectHandler.http_error_302( self, req, fp, code, msg, headers) 
+		result.status = code 
+		return result 
+	def http_error_303(self, req, fp, code, msg, headers): 
+		result = urllib2.HTTPRedirectHandler.http_error_302( self, req, fp, code, msg, headers) 
+		result.status = code 
+		return result 
 		
