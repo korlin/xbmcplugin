@@ -8,6 +8,7 @@ import sys
 import os
 import xbmcgui
 import xbmc
+import urllib
 
 #from utilities import *
 from global_data import *
@@ -28,7 +29,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
 		self.original = kwargs[ "original" ]
 		self.selection = kwargs[ "selection" ]
 		self.list_control = kwargs[ "list_control" ]
-		self.title = kwargs[ "title" ]
+		self.title = urllib.unquote(kwargs[ "title" ])
 		self.doModal()
 
 	def onInit( self ):

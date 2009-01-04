@@ -169,13 +169,7 @@
 			<animation effect="slide" time="500" start="0,88" end="0,0" acceleration="-1.1">Visible</animation>
 			<animation effect="slide" time="500" start="0,0" end="0,88" acceleration="1.1">Hidden</animation>  
 		</control>
-		<control type="videowindow" id="1999">
-			<description>video preview window</description>
-			<posx>35</posx>
-			<posy>400</posy>
-			<width>130</width>
-			<height>107</height>
-		</control>
+
 		 <control type="group" id="9000">
 			<posx>0</posx>
 			<posy>0</posy>
@@ -657,6 +651,13 @@
                 <disabledcolor>FFe2ff43</disabledcolor>
 				<visible>Control.IsVisible(50)</visible>
 			</control>
+		</control>
+		<control type="videowindow" id="1999">
+			<description>video preview window</description>
+			<posx>10</posx>
+			<posy>10</posy>
+			<width>425</width>
+			<height>350</height>
 		</control>
 	</controls>
 </window>
