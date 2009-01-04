@@ -145,29 +145,37 @@ class Update:
                 print"Update().backupExists() %s" % exists
                 return exists
 
-        def getFiles( self, script_files, version ):
-                """ fetch the files """
-                print "Update().getFiles() version=%s" % version 
-                success = False
-                try:
-                        totalFiles = len(script_files)
-                        for cnt, url in enumerate( script_files ):
-                                items = os.path.split( url )
-                                path = os.path.join(self.local_dir, items[0]).replace( version+'/', '' ).replace( version, '' ).replace('/','\\').replace( '%20', ' ' )
-                                file = items[ 1 ].replace( '%20', ' ' )
-                                pct = int( ( float( cnt ) / totalFiles ) * 100 )
-                                self.dialog.update( pct, "%s %s" % ( self._( 1007 ), url, ), "%s %s" % ( self._( 1008 ), path, ), "%s %s" % ( self._( 1009 ), file, ) )
-                                if ( self.dialog.iscanceled() ): raise
-                                if ( not os.path.isdir( path ) ):
-                                        os.makedirs( path )
-                                src = "%s%s" % (self.tags_url, url)
-                                dest = os.path.join(path, file).replace( '%20', ' ' )
-                                urllib.urlretrieve( src,  dest)
+		def getFiles( self, script_files, version ):
+				""" fetch the files """
+				print "Update().getFiles() version=%s" % version 
+				success = False
+				try:
+						totalFiles = len(script_files)
+						for cnt, url in enumerate( script_files ):
+								items = os.path.split( url )
+								path = os.path.join(self.local_dir, items[0]).replace( version+'/', '' ).replace( version, '' ).replace('/','\\').replace( '%20', ' ' )
+								file = items[ 1 ].replace( '%20', ' ' )
+								pct = int( ( float( cnt ) / totalFiles ) * 100 )
+								self.dialog.update( pct, "%s %s" % ( self._( 1007 ), url, ), "%s %s" % ( self._( 1008 ), path, ), "%s %s" % ( self._( 1009 ), file, ) )
+								if ( self.dialog.iscanceled() ): raise
+								if ( not os.path.isdir( path ) ):
+										os.makedirs( path )
+								src = "%s%s" % (self.tags_url, url)
+								dest = os.path.join(path, file).replace( '%20', ' ' )
+								file_replacer=0
+								while file_replacer<10:
+									try:
+										urllib.urlretrieve( src,  dest)
+										file_replacer=100
+									except:
+										time.sleep(1)
+										file_replacer +=1
+								
 
-                        success = True
-                except:
-                        raise
-                return success
+						success = True
+				except:
+						raise
+				return success
 
         def getHTMLSource( self, url ):
                 """ read a doc from a url """

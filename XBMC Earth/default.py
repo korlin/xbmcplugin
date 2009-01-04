@@ -63,6 +63,10 @@ class MainClass(xbmcgui.WindowXML):
 	lon = 13.411494
 	lat = 52.523480
 	zoom = 8
+	URL_satPic = "http://khm2.google.com/kh?v=44"
+	URL_mapHybrid = "http://mt0.google.com/mt?v=w2t.88&x="
+	URL_mapStreet = "http://mt0.google.com/mt?v=w2.88&x="
+	URL_mapArea = "http://mt0.google.com/mt?v=w2p.87&x="
 	xbmcearth_communication = Xbmcearth_communication()
 	markercontainer = []
 	map_size_x = 3	#Groeße der angezeigten Karte (3 Tiles) muss ungerade sein
@@ -98,7 +102,7 @@ class MainClass(xbmcgui.WindowXML):
 			scriptUpdated = False
 		
 
-
+		
 
 		#Clear cached Files
 		self.cleanup_thread = file_remove(self)
@@ -110,9 +114,12 @@ class MainClass(xbmcgui.WindowXML):
 		self.connect()
 		#Get maps.JS
 		maps_js = self.xbmcearth_communication.get_Maps_JS(referer_url, maps_key)
+		self.findTileURLs(maps_js)
+		
 		x = maps_js.find('_mSatelliteToken = "') #find CookieData
 		cookie_txt = maps_js[x+20:maps_js.find('";',x+20)]
-		URL_satPic = URL_satPic + "&cookie=" + cookie_txt + "&t="  #extend Sat_Pic URL
+		self.URL_satPic = self.URL_satPic + "&cookie=" + cookie_txt + "&t="  #extend Sat_Pic URL
+		
 		
 		#setup picsize
 		w = 720
@@ -155,7 +162,8 @@ class MainClass(xbmcgui.WindowXML):
 
 		self.route_pic = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.route_pic)
-		self.drawSAT()
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Start Version" + __version__ ), "/start.html")
+		
 	
 	def onInit(self):
 		self.getControl(2001).setVisible(0)
@@ -172,6 +180,7 @@ class MainClass(xbmcgui.WindowXML):
 		#Start Backgroundthread
 		self.background = background_thread(self)
 		self.background.start()
+		self.drawSAT()
 		pass
 		
 
@@ -273,77 +282,70 @@ class MainClass(xbmcgui.WindowXML):
 		if action.getButtonCode() == KEYBOARD_PG_UP or action.getButtonCode() == REMOTE_1 or action.getButtonCode() == pad_button_right_trigger:
 			self.zoomIN()
 		if action.getButtonCode() == KEYBOARD_INSERT or action.getButtonCode() == REMOTE_INFO or action.getButtonCode() == pad_button_white:
-			if maploaded == 1:
-				if self.hybrid == 1:
-					self.hybrid = 2
-					map_center_x = int(self.map_size_x / 2)
-					map_center_y = int(self.map_size_y / 2)
-					for x in range(self.map_size_x):
-						for y in range(self.map_size_y):
-							self.mapBlocks[x][y].setVisible(1)
-							self.satBlocks[x][y].setVisible(0)
-				elif self.hybrid ==2:
-					self.hybrid = 3
-					map_center_x = int(self.map_size_x / 2)
-					map_center_y = int(self.map_size_y / 2)
-					for x in range(self.map_size_x):
-						for y in range(self.map_size_y):
-							self.mapBlocks[x][y].setVisible(1)
-							self.satBlocks[x][y].setVisible(0)
-				elif self.hybrid ==3:
-					self.hybrid = 0
-					map_center_x = int(self.map_size_x / 2)
-					map_center_y = int(self.map_size_y / 2)
-					for x in range(self.map_size_x):
-						for y in range(self.map_size_y):
-							self.mapBlocks[x][y].setVisible(0)
-							self.satBlocks[x][y].setVisible(1)
-				else:
-					self.hybrid = 1
-					map_center_x = int(self.map_size_x / 2)
-					map_center_y = int(self.map_size_y / 2)
-					for x in range(self.map_size_x):
-						for y in range(self.map_size_y):
-							self.mapBlocks[x][y].setVisible(1)
-							self.satBlocks[x][y].setVisible(1)
-				self.drawHYBRID()
+			if self.hybrid == 1:
+				self.hybrid = 2
+				map_center_x = int(self.map_size_x / 2)
+				map_center_y = int(self.map_size_y / 2)
+				for x in range(self.map_size_x):
+					for y in range(self.map_size_y):
+						self.mapBlocks[x][y].setVisible(1)
+						self.satBlocks[x][y].setVisible(0)
+			elif self.hybrid ==2:
+				self.hybrid = 3
+				map_center_x = int(self.map_size_x / 2)
+				map_center_y = int(self.map_size_y / 2)
+				for x in range(self.map_size_x):
+					for y in range(self.map_size_y):
+						self.mapBlocks[x][y].setVisible(1)
+						self.satBlocks[x][y].setVisible(0)
+			elif self.hybrid ==3:
+				self.hybrid = 0
+				map_center_x = int(self.map_size_x / 2)
+				map_center_y = int(self.map_size_y / 2)
+				for x in range(self.map_size_x):
+					for y in range(self.map_size_y):
+						self.mapBlocks[x][y].setVisible(0)
+						self.satBlocks[x][y].setVisible(1)
+			else:
+				self.hybrid = 1
+				map_center_x = int(self.map_size_x / 2)
+				map_center_y = int(self.map_size_y / 2)
+				for x in range(self.map_size_x):
+					for y in range(self.map_size_y):
+						self.mapBlocks[x][y].setVisible(1)
+						self.satBlocks[x][y].setVisible(1)
+			self.drawHYBRID()
 		
 	def moveUP(self):
-		if maploaded == 1:
-			coord_dist =[]
-			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
-			coord_dist = Googleearth_Coordinates().getLatLong(coord)
-			self.lat = self.lat + coord_dist[3]
-			self.drawSAT()
+		coord_dist =[]
+		coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+		coord_dist = Googleearth_Coordinates().getLatLong(coord)
+		self.lat = self.lat + coord_dist[3]
+		self.drawSAT()
 	def moveDOWN(self):
-		if maploaded == 1:
-			coord_dist =[]
-			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
-			coord_dist = Googleearth_Coordinates().getLatLong(coord)
-			self.lat = self.lat - coord_dist[3]
-			self.drawSAT()
+		coord_dist =[]
+		coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+		coord_dist = Googleearth_Coordinates().getLatLong(coord)
+		self.lat = self.lat - coord_dist[3]
+		self.drawSAT()
 	def moveLEFT(self):
-		if maploaded == 1:
-			coord_dist =[]
-			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
-			coord_dist = Googleearth_Coordinates().getLatLong(coord)
-			self.lon = self.lon - coord_dist[2]
-			self.drawSAT()	
+		coord_dist =[]
+		coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+		coord_dist = Googleearth_Coordinates().getLatLong(coord)
+		self.lon = self.lon - coord_dist[2]
+		self.drawSAT()	
 	def moveRIGHT(self):
-		if maploaded == 1:
-			coord_dist =[]
-			coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
-			coord_dist = Googleearth_Coordinates().getLatLong(coord)
-			self.lon = self.lon + coord_dist[2]
-			self.drawSAT()
+		coord_dist =[]
+		coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
+		coord_dist = Googleearth_Coordinates().getLatLong(coord)
+		self.lon = self.lon + coord_dist[2]
+		self.drawSAT()
 	def zoomOUT(self):
-		if maploaded == 1:
-			self.zoom += 1
-			self.drawSAT()	
+		self.zoom += 1
+		self.drawSAT()	
 	def zoomIN(self):
-		if maploaded == 1:
-			self.zoom -= 1
-			self.drawSAT()
+		self.zoom -= 1
+		self.drawSAT()
 		
 	def goodbye(self):
 		global run_backgroundthread
@@ -374,7 +376,7 @@ class MainClass(xbmcgui.WindowXML):
 			search_kml = self.xbmcearth_communication.get_Query_Place(referer_url, maps_key, search_string)
 			result = self.parse_kml(search_kml)
 			import chooser
-			ch = chooser.GUI( "script-%s-chooser.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0, choices=result["Placemarks"], descriptions=result["Placemarks"], original=-1, selection=0, list_control=1, title="Hallo" )
+			ch = chooser.GUI( "script-%s-chooser.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0, choices=result["Placemarks"], descriptions=result["Placemarks"], original=-1, selection=0, list_control=1, title=urllib.quote(__language__( 10004 )) )
 			self.start = ch.selection
 			del ch
 		keyboard = xbmc.Keyboard()
@@ -387,11 +389,12 @@ class MainClass(xbmcgui.WindowXML):
 			search_kml = self.xbmcearth_communication.get_Query_Place(referer_url, maps_key, search_string)
 			result = self.parse_kml(search_kml)
 			import chooser
-			ch = chooser.GUI( "script-%s-chooser.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0, choices=result["Placemarks"], descriptions=result["Placemarks"], original=-1, selection=0, list_control=1, title="Hallo" )
+			ch = chooser.GUI( "script-%s-chooser.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0, choices=result["Placemarks"], descriptions=result["Placemarks"], original=-1, selection=0, list_control=1, title=urllib.quote(__language__( 10005 )) )
 			self.ziel = ch.selection
 			del ch
 		self.proc_route_result(self.planRoute( self.start, self.ziel))
 		self.drawSAT()	
+	
 	def planRoute(self, start, ziel):
 		self.connect()
 		search_kml = self.xbmcearth_communication.get_Route(referer_url,start, ziel)
@@ -483,7 +486,7 @@ class MainClass(xbmcgui.WindowXML):
 				list_item.setProperty('lat',str(placemark["lat"]))
 			
 			self.addItem(list_item)
-		self.makeRoute(self.routecontainer['linestring'])
+		#self.makeRoute(self.routecontainer['linestring'])
 		self.getControl(2001).setVisible(1)
 	
 	
@@ -502,63 +505,79 @@ class MainClass(xbmcgui.WindowXML):
 		coord_dist =[]
 		coord_dist = googleearth_coordinates.getLatLong(coord)
 		self.xbmcearth_communication.connect("www.panoramio.com")
-		result = simplejson.loads(self.xbmcearth_communication.get_Panoramio(referer_url,"?order=popularity&set=public&from="+str(start)+"&to="+str(start+size)+"&minx="+ str(coord_dist[0]-coord_dist[2]) +"&miny=" + str(coord_dist[1]-coord_dist[3]) + "&maxx="+str(coord_dist[0]+coord_dist[2]*2)+"&maxy="+str(coord_dist[1]+coord_dist[3]*2)+"&size=medium"))
-		index = 0
-		resultcontainer = dict()
-		resultcontainer["count"] = result['count']
-		resultcontainer["start"] = start + size
-		resultcontainer["size"] = size
-		results = result['photos']
-		placemark_seq = []
-		resultcontainer["Placemarks"] = placemark_seq
-		for photos in results:
-			placemark = dict()
-			resultcontainer["Placemarks"].append(placemark)
-			resultcontainer["Placemarks"][index]["name"] = photos["photo_title"]
-			resultcontainer["Placemarks"][index]["photo_id"] = photos["photo_id"]
-			resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
-			resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
-			resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
-			resultcontainer["Placemarks"][index]["width"] = photos["width"]
-			resultcontainer["Placemarks"][index]["height"] = photos["height"]
-			resultcontainer["Placemarks"][index]["upload_date"] = photos["upload_date"]
-			resultcontainer["Placemarks"][index]["owner_name"] = photos["owner_name"]
-			index += 1
-		return resultcontainer
+		result = self.xbmcearth_communication.get_Panoramio(referer_url,"?order=popularity&set=public&from="+str(start)+"&to="+str(start+size)+"&minx="+ str(coord_dist[0]-coord_dist[2]) +"&miny=" + str(coord_dist[1]-coord_dist[3]) + "&maxx="+str(coord_dist[0]+coord_dist[2]*2)+"&maxy="+str(coord_dist[1]+coord_dist[3]*2)+"&size=medium")
+		if result != False:
+			result = simplejson.loads(result)
+			index = 0
+			resultcontainer = dict()
+			resultcontainer["count"] = result['count']
+			resultcontainer["start"] = start + size
+			resultcontainer["size"] = size
+			results = result['photos']
+			placemark_seq = []
+			resultcontainer["Placemarks"] = placemark_seq
+			for photos in results:
+				placemark = dict()
+				resultcontainer["Placemarks"].append(placemark)
+				resultcontainer["Placemarks"][index]["name"] = photos["photo_title"]
+				resultcontainer["Placemarks"][index]["photo_id"] = photos["photo_id"]
+				resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
+				resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
+				resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
+				resultcontainer["Placemarks"][index]["width"] = photos["width"]
+				resultcontainer["Placemarks"][index]["height"] = photos["height"]
+				resultcontainer["Placemarks"][index]["upload_date"] = photos["upload_date"]
+				resultcontainer["Placemarks"][index]["owner_name"] = photos["owner_name"]
+				index += 1
+			return resultcontainer
+		else:
+			return False
 	
 	def proc_panoramio_result(self, result):
-		self.clearList()
-		self.delete_markers()
-		for photo in result["Placemarks"]:	
-			current = get_file(photo["photo_file_url"].replace("medium","square"), "Panoramio\\small\\sm"+str(photo["photo_id"])+".jpg", referer_url)
-			current.start()
-			current.join(1000)
-			list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Panoramio\\small\\sm"+str(photo["photo_id"])+".jpg")
-			list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Upload Date: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]}) 				
-			list_item.setProperty('Piclink', TEMPFOLDER + "\\Panoramio\\medium\\m"+str(photo["photo_id"])+".jpg")
-			list_item.setProperty('Title', urllib.quote(photo["name"]))
-			list_item.setProperty('Genre', urllib.quote("Upload Date: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]))
-			list_item.setProperty('lon',str(photo["lon"]))
-			list_item.setProperty('lat',str(photo["lat"]))
-			list_item.setProperty('photo_file_url',photo["photo_file_url"])
-			list_item.setProperty('photo_id',str(photo["photo_id"]))
-			list_item.setProperty('width',str(photo["width"]))
-			list_item.setProperty('height',str(photo["height"]))
-			list_item.setProperty('type',"Panoramio")
-			self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + "\\Panoramio\\small\\sm"+str(photo["photo_id"])+".jpg",16,32,32,32))
-			self.addItem(list_item)
-		if  result["count"] > result["start"]:
-			list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
-			list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Photos"})
-			list_item.setProperty('type',"Panoramio")
-			list_item.setProperty('next',"next")
-			list_item.setProperty('start',str(result["start"]))
-			list_item.setProperty('size',str(result["size"]))
-			self.addItem(list_item)
-		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Panoramio\\small\\sm"+str(photo["photo_id"])+".jpg")
-		self.getControl(2001).setVisible(1)
+		if result != False:
+			self.clearList()
+			self.delete_markers()
+			if  result["count"] > result["start"]:
+				list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+				list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Photos"})
+				list_item.setProperty('type',"Panoramio")
+				list_item.setProperty('next',"next")
+				list_item.setProperty('start',str(result["start"]))
+				list_item.setProperty('size',str(result["size"]))
+				self.addItem(list_item)
+			for photo in result["Placemarks"]:	
+				photo["path"]="\\Panoramio\\small\\sm"
+				current = get_file(photo["photo_file_url"].replace("medium","square"), "Panoramio\\small\\sm"+str(photo["photo_id"])+".jpg", referer_url,'',self.add_panoramio_hit,self,photo)
+				thread_starter=0
+				while thread_starter<10:
+					try:
+						current.start()
+						thread_starter=100
+					except:
+						time.sleep(1)
+						thread_starter +=1
 
-			
+				#current.join(1000)
+				
+
+			self.getControl(2001).setVisible(1)
+
+	def add_panoramio_hit(self, photo):
+		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Upload Date: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]}) 				
+		list_item.setProperty('Piclink', TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setProperty('Title', urllib.quote(photo["name"]))
+		list_item.setProperty('Genre', urllib.quote("Upload Date: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]))
+		list_item.setProperty('lon',str(photo["lon"]))
+		list_item.setProperty('lat',str(photo["lat"]))
+		list_item.setProperty('photo_file_url',photo["photo_file_url"])
+		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('width',str(photo["width"]))
+		list_item.setProperty('height',str(photo["height"]))
+		list_item.setProperty('type',"Panoramio")
+		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.addItem(list_item,0)
+	
 	#Flickr Support
 	def showFlickr(self):
 		self.proc_flickr_result(self.getFlickr_bbox(1,20))
@@ -575,67 +594,83 @@ class MainClass(xbmcgui.WindowXML):
 		coord_dist = googleearth_coordinates.getLatLong(coord)
 		self.xbmcearth_communication.connect("api.flickr.com")
 		result = self.xbmcearth_communication.get_Flickr(referer_url,"?method=flickr.photos.search&format=json&api_key=" + flickr_Key + "&min_upload_date=977957078&sort=interestingness-desc&bbox="+str(coord_dist[0]-coord_dist[2])+","+str(coord_dist[1]-coord_dist[3])+","+str(coord_dist[0]+coord_dist[2]*2)+","+str(coord_dist[1]+coord_dist[3]*2)+"&extras=+date_taken%2C+owner_name%2C+geo%2C&page="+str(page)+"&per_page="+str(size))
-		result = result.replace("jsonFlickrApi(","").replace(")","")
-		result = simplejson.loads(result)
-		index = 0
-		results = result['photos']
-		resultcontainer = dict()
-		resultcontainer["count"] = results['total']
-		resultcontainer["start"] = page + 1
-		resultcontainer["size"] = size
-		results = results['photo']
-		placemark_seq = []
-		resultcontainer["Placemarks"] = placemark_seq
-		for photos in results:
-			placemark = dict()
-			resultcontainer["Placemarks"].append(placemark)
-			resultcontainer["Placemarks"][index]["name"] = photos["title"]
-			resultcontainer["Placemarks"][index]["photo_id"] = photos["id"]
-			#resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
-			resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
-			resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
-			#resultcontainer["Placemarks"][index]["width"] = photos["width"]
-			#resultcontainer["Placemarks"][index]["height"] = photos["height"]
-			resultcontainer["Placemarks"][index]["upload_date"] = photos["datetaken"]
-			resultcontainer["Placemarks"][index]["owner_name"] = photos["ownername"]
-			resultcontainer["Placemarks"][index]["farm"] = photos["farm"]
-			resultcontainer["Placemarks"][index]["server"] = photos["server"]
-			resultcontainer["Placemarks"][index]["secret"] = photos["secret"]
-			index += 1
-		return resultcontainer
+		if result != False:
+			result = result.replace("jsonFlickrApi(","").replace(")","")
+			result = simplejson.loads(result)
+			index = 0
+			results = result['photos']
+			resultcontainer = dict()
+			resultcontainer["count"] = results['total']
+			resultcontainer["start"] = page + 1
+			resultcontainer["size"] = size
+			results = results['photo']
+			placemark_seq = []
+			resultcontainer["Placemarks"] = placemark_seq
+			for photos in results:
+				placemark = dict()
+				resultcontainer["Placemarks"].append(placemark)
+				resultcontainer["Placemarks"][index]["name"] = photos["title"]
+				resultcontainer["Placemarks"][index]["photo_id"] = photos["id"]
+				#resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
+				resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
+				resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
+				#resultcontainer["Placemarks"][index]["width"] = photos["width"]
+				#resultcontainer["Placemarks"][index]["height"] = photos["height"]
+				resultcontainer["Placemarks"][index]["upload_date"] = photos["datetaken"]
+				resultcontainer["Placemarks"][index]["owner_name"] = photos["ownername"]
+				resultcontainer["Placemarks"][index]["farm"] = photos["farm"]
+				resultcontainer["Placemarks"][index]["server"] = photos["server"]
+				resultcontainer["Placemarks"][index]["secret"] = photos["secret"]
+				index += 1
+			return resultcontainer
+		else:
+			return False
 		
 	def proc_flickr_result(self, result):
-		self.clearList()
-		self.delete_markers()
-		for photo in result["Placemarks"]:	
-			current = get_file("http://farm"+str(photo["farm"])+".static.flickr.com/"+str(photo["server"])+"/"+str(photo["photo_id"])+"_"+str(photo["secret"])+"_s.jpg", "Flickr\\small\\"+str(photo["photo_id"])+".jpg", referer_url)
-			current.start()
-			current.join(1000)
-			list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Flickr\\small\\"+str(photo["photo_id"])+".jpg")
-			list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Date taken: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]}) 				
-			list_item.setProperty('Piclink', TEMPFOLDER + "\\Panoramio\\medium\\"+str(photo["photo_id"])+".jpg")
-			list_item.setProperty('Title', urllib.quote(photo["name"]))
-			list_item.setProperty('Genre', urllib.quote("Date taken: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]))
-			list_item.setProperty('lon',str(photo["lon"]))
-			list_item.setProperty('lat',str(photo["lat"]))
-			list_item.setProperty('farm',str(photo["farm"]))
-			list_item.setProperty('photo_id',str(photo["photo_id"]))
-			list_item.setProperty('server',str(photo["server"]))
-			list_item.setProperty('secret',str(photo["secret"]))
-			list_item.setProperty('type',"flickr")
-			self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + "\\Flickr\\small\\"+str(photo["photo_id"])+".jpg",16,32,32,32))
-			self.addItem(list_item)
-		if  result["count"] > result["start"]*result["size"]:
-			list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
-			list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Photos"})
-			list_item.setProperty('type',"flickr")
-			list_item.setProperty('next',"next")
-			list_item.setProperty('start',str(result["start"]))
-			list_item.setProperty('size',str(result["size"]))
-			self.addItem(list_item)
-		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Flickr\\small\\"+str(photo["photo_id"])+".jpg")
-		self.getControl(2001).setVisible(1)
-	
+		if result != False:
+			self.clearList()
+			self.delete_markers()
+			if  result["count"] > result["start"]*result["size"]:
+				list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+				list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Photos"})
+				list_item.setProperty('type',"flickr")
+				list_item.setProperty('next',"next")
+				list_item.setProperty('start',str(result["start"]))
+				list_item.setProperty('size',str(result["size"]))
+				self.addItem(list_item)
+			for photo in result["Placemarks"]:	
+				photo["path"]="\\Flickr\\small\\"
+				current = get_file("http://farm"+str(photo["farm"])+".static.flickr.com/"+str(photo["server"])+"/"+str(photo["photo_id"])+"_"+str(photo["secret"])+"_s.jpg", "Flickr\\small\\"+str(photo["photo_id"])+".jpg", referer_url,'',self.add_flickr_hit,self,photo)
+				thread_starter=0
+				while thread_starter<10:
+					try:
+						current.start()
+						thread_starter=100
+					except:
+						time.sleep(1)
+						thread_starter +=1
+
+				#current.join(1000)
+				
+
+			self.getControl(2001).setVisible(1)
+			
+	def add_flickr_hit(self, photo):
+		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Date taken: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]}) 				
+		list_item.setProperty('Piclink', TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setProperty('Title', urllib.quote(photo["name"]))
+		list_item.setProperty('Genre', urllib.quote("Date taken: " + photo["upload_date"] + " - Owner: " + photo["owner_name"]))
+		list_item.setProperty('lon',str(photo["lon"]))
+		list_item.setProperty('lat',str(photo["lat"]))
+		list_item.setProperty('farm',str(photo["farm"]))
+		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('server',str(photo["server"]))
+		list_item.setProperty('secret',str(photo["secret"]))
+		list_item.setProperty('type',"flickr")
+		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.addItem(list_item,0)
+		
 	#Locr Support
 	def showLocr(self):
 		self.proc_locr_result(self.getLocr(1,20))
@@ -652,67 +687,80 @@ class MainClass(xbmcgui.WindowXML):
 		coord_dist = googleearth_coordinates.getLatLong(coord)
 		self.xbmcearth_communication.connect("www.locr.com")
 		result = self.xbmcearth_communication.get_Locr(referer_url,"?longitudemin="+str(coord_dist[0]-coord_dist[2])+"&latitudemin="+str(coord_dist[1]-coord_dist[3])+"&longitudemax="+str(coord_dist[0]+coord_dist[2]*2)+"&latitudemax=" + str(coord_dist[1]+coord_dist[3]*2) + "&count="+str(size)+"&start="+str(start)+"&category=popularity&size=medium&locr=true")
-		result = simplejson.loads(result)
-		index = 0
-		resultcontainer = dict()
-		resultcontainer["start"] = start + size
-		resultcontainer["size"] = size
-		results = result['photos']
-		placemark_seq = []
-		resultcontainer["Placemarks"] = placemark_seq
-		for photos in results:
-			placemark = dict()
-			resultcontainer["Placemarks"].append(placemark)
-			resultcontainer["Placemarks"][index]["name"] = photos["caption"]
-			resultcontainer["Placemarks"][index]["photo_id"] = photos["photo_name"]
-			resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
-			resultcontainer["Placemarks"][index]["photo_ext"] = photos["photo_ext"]
-			resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
-			resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
-			resultcontainer["Placemarks"][index]["width"] = photos["photo_offset_width"]
-			resultcontainer["Placemarks"][index]["height"] = photos["photo_offset_height"]
-			resultcontainer["Placemarks"][index]["tags"] = photos["tags"]
-			resultcontainer["Placemarks"][index]["description"] = photos["description"]
-			resultcontainer["Placemarks"][index]["created"] = photos["created"]
-			resultcontainer["Placemarks"][index]["owner_name"] = photos["user_name"]
+		if result != False:
+			result = simplejson.loads(result)
+			index = 0
+			resultcontainer = dict()
+			resultcontainer["start"] = start + size
+			resultcontainer["size"] = size
+			results = result['photos']
+			placemark_seq = []
+			resultcontainer["Placemarks"] = placemark_seq
+			for photos in results:
+				placemark = dict()
+				resultcontainer["Placemarks"].append(placemark)
+				resultcontainer["Placemarks"][index]["name"] = photos["caption"]
+				resultcontainer["Placemarks"][index]["photo_id"] = photos["photo_name"]
+				resultcontainer["Placemarks"][index]["photo_file_url"] = photos["photo_file_url"]
+				resultcontainer["Placemarks"][index]["photo_ext"] = photos["photo_ext"]
+				resultcontainer["Placemarks"][index]["lon"] = photos["longitude"]
+				resultcontainer["Placemarks"][index]["lat"] = photos["latitude"]
+				resultcontainer["Placemarks"][index]["width"] = photos["photo_offset_width"]
+				resultcontainer["Placemarks"][index]["height"] = photos["photo_offset_height"]
+				resultcontainer["Placemarks"][index]["tags"] = photos["tags"]
+				resultcontainer["Placemarks"][index]["description"] = photos["description"]
+				resultcontainer["Placemarks"][index]["created"] = photos["created"]
+				resultcontainer["Placemarks"][index]["owner_name"] = photos["user_name"]
 
-			index += 1
-		return resultcontainer
+				index += 1
+			return resultcontainer
+		else:
+			return False
 	
 	def proc_locr_result(self, result):
-		self.clearList()
-		self.delete_markers()
-		for photo in result["Placemarks"]:	
-			current = get_file(photo["photo_file_url"].replace("_M","_SQ"), "Locr\\small\\"+str(photo["photo_id"])+".jpg", referer_url)
-			current.start()
-			current.join(1000)
-			list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Locr\\small\\"+str(photo["photo_id"])+".jpg")
-			list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Create Date: " + photo["created"] + " - Owner: " + photo["owner_name"]}) 				
-			list_item.setProperty('Piclink', TEMPFOLDER + "\\Locr\\medium\\"+str(photo["photo_id"])+".jpg")
-			list_item.setProperty('Title', urllib.quote(photo["name"]))
-			list_item.setProperty('Genre', urllib.quote("Create Date: " + photo["created"] + " - Owner: " + photo["owner_name"]))
-			list_item.setProperty('lon',str(photo["lon"]))
-			list_item.setProperty('lat',str(photo["lat"]))
-			list_item.setProperty('photo_file_url',photo["photo_file_url"])
-			list_item.setProperty('photo_id',str(photo["photo_id"]))
-			list_item.setProperty('width',str(photo["width"]))
-			list_item.setProperty('height',str(photo["height"]))
-			list_item.setProperty('type',"locr")
-			self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + "\\Locr\\small\\"+str(photo["photo_id"])+".jpg",16,32,32,32))
-			self.addItem(list_item)
-		#if  result["count"] > result["start"]:
-		if  self.getListSize() == 20:
-			list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
-			list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": ""})
-			list_item.setProperty('type',"locr")
-			list_item.setProperty('next',"next")
-			list_item.setProperty('start',str(result["start"]))
-			list_item.setProperty('size',str(result["size"]))
-			self.addItem(list_item)
-		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER + "\\Locr\\small\\"+str(photo["photo_id"])+".jpg")
-		self.getControl(2001).setVisible(1)
+		if result != False:
+			self.clearList()
+			self.delete_markers()
+			if  len(result["Placemarks"]) == 20:
+				list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+				list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": ""})
+				list_item.setProperty('type',"locr")
+				list_item.setProperty('next',"next")
+				list_item.setProperty('start',str(result["start"]))
+				list_item.setProperty('size',str(result["size"]))
+				self.addItem(list_item)
+			for photo in result["Placemarks"]:	
+				photo["path"]="Locr\\small\\"
+				current = get_file(photo["photo_file_url"].replace("_M","_SQ"), photo["path"]+str(photo["photo_id"])+".jpg", referer_url,'',self.add_locr_hit,self,photo)
+				thread_starter=0
+				while thread_starter<10:
+					try:
+						current.start()
+						thread_starter=100
+					except:
+						time.sleep(1)
+						thread_starter +=1
+
+				#current.join(1000)
+			self.getControl(2001).setVisible(1)
 	
-	#Locr Support
+	def add_locr_hit(self, photo):
+		list_item = xbmcgui.ListItem(photo["name"], '', "", TEMPFOLDER +"\\"+ photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setInfo( 'video', { "Title": photo["name"], "Genre": "Create Date: " + photo["created"] + " - Owner: " + photo["owner_name"]}) 				
+		list_item.setProperty('Piclink', TEMPFOLDER +"\\"+ photo["path"]+str(photo["photo_id"])+".jpg")
+		list_item.setProperty('Title', urllib.quote(photo["name"]))
+		list_item.setProperty('Genre', urllib.quote("Create Date: " + photo["created"] + " - Owner: " + photo["owner_name"]))
+		list_item.setProperty('lon',str(photo["lon"]))
+		list_item.setProperty('lat',str(photo["lat"]))
+		list_item.setProperty('photo_file_url',photo["photo_file_url"])
+		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('width',str(photo["width"]))
+		list_item.setProperty('height',str(photo["height"]))
+		list_item.setProperty('type',"locr")
+		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER +"\\"+ photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.addItem(list_item,0)
+		
+	#Youtube Support
 	def showYoutube(self):
 		self.proc_youtube_result(self.getYoutube(1,20))
 		self.piccontainer["enable"] = 1
@@ -731,73 +779,86 @@ class MainClass(xbmcgui.WindowXML):
 		distance = googleearth_coordinates.getDistance(center_lat,center_lon,center_lat+(coord_dist[3]*1.5),center_lon+(coord_dist[2]*1.5))
 		self.xbmcearth_communication.connect("gdata.youtube.com")
 		result = self.xbmcearth_communication.get_Youtube(referer_url,"?location="+str(center_lat)+","+str(center_lon)+"!&location-radius="+str(distance)+"km&alt=json&start-index="+str(start)+"&max-results="+str(size))
-		result = simplejson.loads(result)
-		index = 0
-		feed = result["feed"]
-		resultcontainer = dict()
-		results = feed["openSearch$totalResults"]
-		resultcontainer["count"] = results['$t']
-		resultcontainer["start"] = start + size
-		resultcontainer["size"] = size
-		videos = feed['entry']
-		placemark_seq = []
-		resultcontainer["Placemarks"] = placemark_seq
-		for video in videos:
-			placemark = dict()
-			resultcontainer["Placemarks"].append(placemark)
-			resultcontainer["Placemarks"][index]["video_id"] = video['id']['$t'].replace('http://gdata.youtube.com/feeds/api/videos/','')
-			resultcontainer["Placemarks"][index]["name"] = video["title"]['$t']
-			resultcontainer["Placemarks"][index]["description"] = video["content"]['$t'].replace('\n','')
-			resultcontainer["Placemarks"][index]["photo_file_url"] = video["media$group"]["media$thumbnail"][0]['url']
-			try:
-				resultcontainer["Placemarks"][index]["lon"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[1]
-				resultcontainer["Placemarks"][index]["lat"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[0]
-			except:
-				resultcontainer["Placemarks"][index]["lon"] = self.lon
-				resultcontainer["Placemarks"][index]["lat"] = self.lat
-			#resultcontainer["Placemarks"][index]["width"] = photos["photo_offset_width"]
-			#resultcontainer["Placemarks"][index]["height"] = photos["photo_offset_height"]
-			#resultcontainer["Placemarks"][index]["tags"] = photos["tags"]
-			#resultcontainer["Placemarks"][index]["description"] = photos["description"]
-			try:
-				resultcontainer["Placemarks"][index]["created"] = video["yt$recorded"]['$t']
-			except:
-				resultcontainer["Placemarks"][index]["created"] = video["published"]['$t']
-			#resultcontainer["Placemarks"][index]["owner_name"] = photos["user_name"]
-			index += 1
-		return resultcontainer
+		if result != False:
+			result = simplejson.loads(result)
+			index = 0
+			feed = result["feed"]
+			resultcontainer = dict()
+			results = feed["openSearch$totalResults"]
+			resultcontainer["count"] = results['$t']
+			resultcontainer["start"] = start + size
+			resultcontainer["size"] = size
+			videos = feed['entry']
+			placemark_seq = []
+			resultcontainer["Placemarks"] = placemark_seq
+			for video in videos:
+				placemark = dict()
+				resultcontainer["Placemarks"].append(placemark)
+				resultcontainer["Placemarks"][index]["video_id"] = video['id']['$t'].replace('http://gdata.youtube.com/feeds/api/videos/','')
+				resultcontainer["Placemarks"][index]["name"] = video["title"]['$t']
+				resultcontainer["Placemarks"][index]["description"] = video["content"]['$t'].replace('\n','')
+				resultcontainer["Placemarks"][index]["photo_file_url"] = video["media$group"]["media$thumbnail"][0]['url']
+				try:
+					resultcontainer["Placemarks"][index]["lon"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[1]
+					resultcontainer["Placemarks"][index]["lat"] = video["georss$where"]["gml$Point"]["gml$pos"]['$t'].split(' ')[0]
+				except:
+					resultcontainer["Placemarks"][index]["lon"] = self.lon
+					resultcontainer["Placemarks"][index]["lat"] = self.lat
+				#resultcontainer["Placemarks"][index]["width"] = photos["photo_offset_width"]
+				#resultcontainer["Placemarks"][index]["height"] = photos["photo_offset_height"]
+				#resultcontainer["Placemarks"][index]["tags"] = photos["tags"]
+				#resultcontainer["Placemarks"][index]["description"] = photos["description"]
+				try:
+					resultcontainer["Placemarks"][index]["created"] = video["yt$recorded"]['$t']
+				except:
+					resultcontainer["Placemarks"][index]["created"] = video["published"]['$t']
+				#resultcontainer["Placemarks"][index]["owner_name"] = photos["user_name"]
+				index += 1
+			return resultcontainer
+		else:
+			return False
 	
 	def proc_youtube_result(self, result):
-		self.clearList()
-		self.delete_markers()
-		for video in result["Placemarks"]:	
-			current = get_file(video["photo_file_url"], "Youtube\\small\\"+str(video["video_id"])+".jpg", referer_url)
-			current.start()
-			current.join(1000)
-			list_item = xbmcgui.ListItem(video["name"], '', "", TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg")
-			list_item.setInfo( 'video', { "Title": video["name"], "Genre": "Create Date: " + video["created"] + " - Description: " + video["description"]}) 				
-			#list_item.setProperty('Piclink', TEMPFOLDER + "\\Youtube\\medium\\"+str(video["video_id"])+".jpg")
-			list_item.setProperty('Title', urllib.quote(video["name"]))
-			#list_item.setProperty('Genre', urllib.quote("Create Date: " + video["created"] + " - Owner: " + video["owner_name"]))
-			list_item.setProperty('lon',str(video["lon"]))
-			list_item.setProperty('lat',str(video["lat"]))
-			#list_item.setProperty('video_file_url',video["video_file_url"])
-			list_item.setProperty('video_id',str(video["video_id"]))
-			#list_item.setProperty('width',str(video["width"]))
-			#list_item.setProperty('height',str(video["height"]))
-			list_item.setProperty('type',"youtube")
-			self.markercontainer.append(marker(self, float(video["lat"]), float(video["lon"]), TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg",16,32,32,32))
-			self.addItem(list_item)
-		if  result["count"] > result["start"]*result["size"]:
-			list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
-			list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Videos"})
-			list_item.setProperty('type',"youtube")
-			list_item.setProperty('next',"next")
-			list_item.setProperty('start',str(result["start"]))
-			list_item.setProperty('size',str(result["size"]))
-			self.addItem(list_item)
-		list_item = xbmcgui.ListItem(video["name"], '', "", TEMPFOLDER + "\\Youtube\\small\\"+str(video["video_id"])+".jpg")
-		self.getControl(2001).setVisible(1)
+		if result != False:
+			self.clearList()
+			self.delete_markers()
+			if  result["count"] > result["start"]*result["size"]:
+				list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+				list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Videos"})
+				list_item.setProperty('type',"youtube")
+				list_item.setProperty('next',"next")
+				list_item.setProperty('start',str(result["start"]))
+				list_item.setProperty('size',str(result["size"]))
+				self.addItem(list_item)
+			for video in result["Placemarks"]:	
+				video["path"] = "\\Youtube\\small\\"
+				current = get_file(video["photo_file_url"], "Youtube\\small\\"+str(video["video_id"])+".jpg", referer_url,'',self.add_youtube_hit,self,video)
+				thread_starter=0
+				while thread_starter<10:
+					try:
+						current.start()
+						thread_starter=100
+					except:
+						time.sleep(1)
+						thread_starter +=1
+				#current.join(1000)
+			self.getControl(2001).setVisible(1)
+		
+	def add_youtube_hit(self, video):
+		list_item = xbmcgui.ListItem(video["name"], '', "", TEMPFOLDER + video["path"]+str(video["video_id"])+".jpg")
+		list_item.setInfo( 'video', { "Title": video["name"], "Genre": "Create Date: " + video["created"] + " - Description: " + video["description"]}) 				
+		#list_item.setProperty('Piclink', TEMPFOLDER + "\\Youtube\\medium\\"+str(video["video_id"])+".jpg")
+		list_item.setProperty('Title', urllib.quote(video["name"]))
+		#list_item.setProperty('Genre', urllib.quote("Create Date: " + video["created"] + " - Owner: " + video["owner_name"]))
+		list_item.setProperty('lon',str(video["lon"]))
+		list_item.setProperty('lat',str(video["lat"]))
+		#list_item.setProperty('video_file_url',video["video_file_url"])
+		list_item.setProperty('video_id',str(video["video_id"]))
+		#list_item.setProperty('width',str(video["width"]))
+		#list_item.setProperty('height',str(video["height"]))
+		list_item.setProperty('type',"youtube")
+		self.markercontainer.append(marker(self, float(video["lat"]), float(video["lon"]), TEMPFOLDER + video["path"]+str(video["video_id"])+".jpg",16,32,32,32))
+		self.addItem(list_item,0)
 		
 	#Search Support
 	def search_map(self, key_txt = ''):
@@ -1068,14 +1129,15 @@ class MainClass(xbmcgui.WindowXML):
 				self.drawSAT()
 				self.xbmcearth_communication.connect("www.youtube.com")
 				result = self.xbmcearth_communication.get_Youtube_html(referer_url,"?v="+self.getListItem(self.getCurrentListPosition()).getProperty('video_id'))
-				x = result.find('var swfArgs = ')
-				result =result[x+14:result.find(';',x+15)]
-				result = simplejson.loads(result)
-				base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
-				vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
-				self.player.stop()
-				self.player.play(vid_url) 
-				self.getControl(2000).setVisible(1)
+				if result != False:
+					x = result.find('var swfArgs = ')
+					result =result[x+14:result.find(';',x+15)]
+					result = simplejson.loads(result)
+					base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
+					vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
+					self.player.stop()
+					self.player.play(vid_url) 
+					self.getControl(2000).setVisible(1)
 	
 	
 	
@@ -1138,6 +1200,16 @@ class MainClass(xbmcgui.WindowXML):
 			self.makeRoute(self.routecontainer['linestring'])
 		else:
 			self.route_pic.setImage('')
+		if self.hybrid == 1:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Hybrid" + __version__ ), "/Hybrid_act.html")
+		elif self.hybrid == 2:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Map" + __version__ ), "/Map_act.html")
+		elif self.hybrid == 3:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Area" + __version__ ), "/Area_act.html")
+		elif self.hybrid == 0:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Satelite" + __version__ ), "/Satelite_act.html")
+		
+		#self.showFlickr()
 		#self.makeRoute('')
 		
 	def redraw_markers(self):
@@ -1211,8 +1283,42 @@ class MainClass(xbmcgui.WindowXML):
 		gui_pos.append(self.pos[0]+int((lon_marker/self.x_res))-self.x_offset)
 		gui_pos.append(self.pos[1]+(self.pic_size)-int((lat_marker/self.y_res))-self.y_offset)
 		return gui_pos
-
-	
+		
+	def findTileURLs(self, maps_js):
+		#URL_satPic = "http://khm2.google.com/kh?v=   44"
+		#              http://khm0.google.com/kh?v\x3d34\x26hl\x3dde\x26
+		#                                    /kh?v=   34&   hl=   de&   x=22&y=10&z=5&s=Gali
+		#URL_mapHybrid = "http://mt0.google.com/mt?v=   w2t.88            &   x="
+		#                 http://mt0.google.com/mt?v\x3dapt.88\x26hl\x3dde\x26
+		#                                      /mt?v=w2   t.88&   hl=   de&   x=22&y=10&z=5&s=Gali 
+		#URL_mapStreet = "http://mt0.google.com/mt?v=   w2.88&x="
+		#                 http://mt0.google.com/mt?v\x3dap.88\x26hl\x3dde\x26
+		#                                      /mt?v=   w2.89&   hl=   de&   x=22&y=12&z=5&s=Galile
+		#URL_mapArea = "http://mt0.google.com/mt?v=   w2p.87&               x="
+		#               http://mt0.google.com/mt?v\x3dapp.87\x26hl\x3dde\x26
+		#                                    /mt?v=   w2p.87&   hl=   de&   x=15&y=9&z=5&s=Galile 
+		apiCallback = maps_js[maps_js.find('apiCallback('):maps_js.find(';',maps_js.find('apiCallback('))]
+		apiCallback = apiCallback.split('[')
+		api_mapStreet = apiCallback[1][1:apiCallback[1].find(']')].replace('"','').split(',')
+		mapStreet = api_mapStreet[0].replace('\\x3d','=').replace('\\x26','&').replace('ap','w2')
+		print mapStreet[0:len(mapStreet)-1]
+		self.URL_mapStreet = mapStreet[0:len(mapStreet)-1]
+		
+		api_satPIC = apiCallback[2][1:apiCallback[2].find(']')].replace('"','').split(',')
+		satPIC = api_satPIC[0].replace('\\x3d','=').replace('\\x26','&').replace('ap','w2')
+		print satPIC[0:len(satPIC)-1]
+		self.URL_satPic = satPIC[0:len(satPIC)-1]
+		
+		api_mapHybrid = apiCallback[3][1:apiCallback[3].find(']')].replace('"','').split(',')
+		mapHybrid = api_mapHybrid[0].replace('\\x3d','=').replace('\\x26','&').replace('ap','w2')
+		print mapHybrid[0:len(mapHybrid)-1]
+		self.URL_mapHybrid = mapHybrid[0:len(mapHybrid)-1]
+		
+		api_mapArea = apiCallback[4][1:apiCallback[4].find(']')].replace('"','').split(',')
+		mapArea = api_mapArea[0].replace('\\x3d','=').replace('\\x26','&').replace('ap','w2')
+		print mapArea[0:len(mapArea)-1]
+		self.URL_mapArea = mapArea[0:len(mapArea)-1]
+		
 class marker:
 	x_res = 0.0
 	y_res = 0.0
@@ -1288,8 +1394,6 @@ class draw_sat(Thread):
 
 
 	def run(self):
-		global maploaded
-		maploaded = 0
 		if self.window.hybrid <= 1:
 			googleearth_coordinates = Googleearth_Coordinates()
 			Lon = self.window.lon
@@ -1328,17 +1432,23 @@ class draw_sat(Thread):
 					#elif Lat > 90.0:
 					#	Lat -= 180.0u
 					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
-					current = get_file(URL_satPic + coord, "Sat\\z"+str(Zoom)+"\\"+coord+".png", referer_url,self.satBlocks[x][y])
+					current = get_file(self.window.URL_satPic + coord, "Sat\\z"+str(Zoom)+"\\"+coord+".png", referer_url,self.satBlocks[x][y])
 					satlist.append(current)
-					current.start()
-					current.join(100)
+					thread_starter=0
+					while thread_starter<10:
+						try:
+							current.start()
+							thread_starter=100
+						except:
+							time.sleep(1)
+							thread_starter +=1
+					#current.join(100)
 		else:
 			try:
 				for x in range(self.window.map_size_x):
 					for y in range(self.window.map_size_y):
 						self.satBlocks[x][y].setVisible(False)
 			except: pass
-		maploaded = 1
 			
 		
 class draw_map(Thread):
@@ -1347,8 +1457,6 @@ class draw_map(Thread):
 		self.mapBlocks = mapBlocks
 		self.window = window
 	def run(self):
-		global maploaded
-		maploaded = 0
 		if self.window.hybrid == 1:
 			googleearth_coordinates = Googleearth_Coordinates()
 			Lon = self.window.lon
@@ -1366,10 +1474,17 @@ class draw_map(Thread):
 					Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y					
 					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
 					Map_Tile = googleearth_coordinates.getTileCoord(Lon, Lat, Zoom-1)
-					current = get_file(URL_mapHybrid + str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Hyb\\z"+str(Zoom)+"\\"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
+					current = get_file(self.window.URL_mapHybrid + "&x="+ str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Hyb\\z"+str(Zoom)+"\\"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
 					maplist.append(current)
-					current.start()
-					current.join(100)
+					thread_starter=0
+					while thread_starter<10:
+						try:
+							current.start()
+							thread_starter=100
+						except:
+							time.sleep(1)
+							thread_starter +=1
+					#current.join(100)
 		elif self.window.hybrid == 2:
 			googleearth_coordinates = Googleearth_Coordinates()
 			Lon = self.window.lon
@@ -1387,10 +1502,17 @@ class draw_map(Thread):
 					Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y					
 					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
 					Map_Tile = googleearth_coordinates.getTileCoord(Lon, Lat, Zoom-1)
-					current = get_file(URL_mapStreet + str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Map\\z"+str(Zoom)+"\\m"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
+					current = get_file(self.window.URL_mapStreet + "&x="+ str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Map\\z"+str(Zoom)+"\\m"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
 					maplist.append(current)
-					current.start()
-					current.join(100)
+					thread_starter=0
+					while thread_starter<10:
+						try:
+							current.start()
+							thread_starter=100
+						except:
+							time.sleep(1)
+							thread_starter +=1
+					#current.join(100)
 		elif self.window.hybrid == 3:
 			googleearth_coordinates = Googleearth_Coordinates()
 			Lon = self.window.lon
@@ -1410,17 +1532,23 @@ class draw_map(Thread):
 					Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y					
 					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
 					Map_Tile = googleearth_coordinates.getTileCoord(Lon, Lat, Zoom-1)
-					current = get_file(URL_mapArea + str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Area\\z"+str(Zoom)+"\\a"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
+					current = get_file(self.window.URL_mapArea + "&x="+ str(Map_Tile[0]) + "&y=" + str(Map_Tile[1]) + "&z=" + str(18-Zoom), "Area\\z"+str(Zoom)+"\\a"+str(Map_Tile[0]) + str(Map_Tile[1])+".png", referer_url,self.mapBlocks[x][y])
 					maplist.append(current)
-					current.start()
-					current.join(100)
+					thread_starter=0
+					while thread_starter<10:
+						try:
+							current.start()
+							thread_starter=100
+						except:
+							time.sleep(1)
+							thread_starter +=1
+					#current.join(100)
 		else:
 			try:
 				for x in range(self.window.map_size_x):
 					for y in range(self.window.map_size_y):
 						self.mapBlocks[x][y].setVisible(False)
 			except: pass
-		maploaded = 1
 
 
 						

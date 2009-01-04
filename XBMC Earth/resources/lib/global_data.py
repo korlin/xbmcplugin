@@ -67,10 +67,7 @@ ACTION_CANCEL_DIALOG = ACTION_EXIT_SCRIPT + ( 9, )
 ___DEBUG___ = 0
 
 
-URL_satPic = "http://khm2.google.com/kh?v=44"
-URL_mapHybrid = "http://mt0.google.com/mt?v=w2t.88&x="
-URL_mapStreet = "http://mt0.google.com/mt?v=w2.88&x="
-URL_mapArea = "http://mt0.google.com/mt?v=w2p.87&x="
+
 referer_url = "http://www.xbmcmaps.de/"
 maps_key = "ABQIAAAA4EpbC7RHiE0W_bpP2qoPuRSrw_O3MTicr_dkITIGIFQfupbYjhTcVPvnKUaG17t4xvFMLOko2fKwTA"
 flickr_Key = "7458156304b50b74b675aca223f44d28"
@@ -78,7 +75,5 @@ flickr_secret = "47ffb7c4085d29f6"
 cookie_txt = ""
 
 run_backgroundthread = 1
-
-maploaded = 0
 
 hybrid = 1

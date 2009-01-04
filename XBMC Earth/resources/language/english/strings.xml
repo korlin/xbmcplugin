@@ -14,6 +14,8 @@
 	<string id="10001">Start-Point (e.g. New York)</string>
 	<string id="10002">End-Point (e.g. Miami)</string>
     <string id="10003">next %s Hits</string>
+	<string id="10004">choose the starting Point:</string>
+	<string id="10005">choose the End Point:</string>
 	
 	<!-- Update messages -->
     <string id="1000">Your version is up to date.</string>

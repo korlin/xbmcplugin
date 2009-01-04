@@ -1,6 +1,8 @@
-
+#User-Agent: XBMC/8.10 (compatible; MSIE 6.0; Windows NT 5.1; WinampMPEG/5.09)
 import xbmc, datetime, tarfile, os, glob, urllib, httplib, sys, os.path, time, datetime, urllib2
 from threading import Thread
+from string import Template
+
 TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp\\" )	
 
 class Xbmcearth_communication:
@@ -181,6 +183,32 @@ class Xbmcearth_communication:
 		vid_url = f.url 
 		return vid_url
 
+	def get_Google_Analytics(self, url, pagetitle, page):
+		header = {
+			"Host":"www.google-analytics.com",
+			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"Accept":"*/*",
+			"UA-CPU": "x86",
+			"Accept-Language":"de",
+			"Connection": "Keep-Alive",
+			"NovINet": "v1.0",
+			"Referer": url} 
+		self.connect("www.google-analytics.com")
+		import random
+		utmn_rnd =        str(random.randint(1000000000,9999999999))
+		cookie_rand = str(random.randint(10000000,99999999))
+		random=       str(random.randint(1000000000,2147483647))
+		today=        str(int(time.mktime(datetime.datetime.now().timetuple())))
+
+		params = "?utmwv=1.3&utmn=$utmn&utmcs=iso-8859-1&utmsr=1920x1200&utmsc=32-bit&utmul=de&utmje=0&utmdt=$utmdt&utmhn=$utmhn&utmhid=1262108431&utmr=-&utmp=$utmp&utmac=UA-2760691-2"
+		params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.1%3B%2B__utmb%3D$utmb%3B%2B__utmc%3D$utmc%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
+		params = Template(params)
+		params = params.substitute(utmn = utmn_rnd, utmdt = pagetitle, utmhn = "www.xbmcmaps.de", utmp = page,	utma1 = cookie_rand, utma2 = random, utma3 = today, utma4 = today, utma5 = today, utmb = cookie_rand, utmc = cookie_rand, utmz1 = cookie_rand, utmz2 = today)		
+		#params = str(params)
+		print params.replace('&','\n&').replace('__','\n__')
+		body = ''
+		self.sTargetUrl = "http://www.google-analytics.com/__utm.gif"
+		
 	def get_Maps_JS(self, url, key):
 		#http://maps.google.com/maps?file=api&v=2&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ
 		#GET /maps?file=api&v=2&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ HTTP/1.1
@@ -286,77 +314,9 @@ class Xbmcearth_communication:
 		outfile.close()
 
 
-class get_pic(Thread):
-	
-	def __init__ (self,params,FileName,referer_url,imgBlocks):
-		Thread.__init__(self)
-		self.parms = params[params.find('?'):len(params)]
-		self.referer_url = referer_url
-		self.filename = FileName
-		self.path = ""
-		self.sTargetUrl = params[0:params.find('?')]
-		self.host = params[params.find('//')+2:params.find('/',params.find('//')+2)]
-		self.imgBlocks = imgBlocks
-		self.connect(self.host)
-	def run(self):
-		if not os.path.exists(TEMPFOLDER + self.filename + ".png"):
-			header = {
-				"Host": self.host,
-				"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
-				"Accept":"*/*",
-				"Accept-Language":"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3",
-				"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-				"Keep-Alive":"300",
-				"Proxy-Connection":"keep-alive",
-				"Referer":  self.referer_url}
-			params = self.parms
-			body = ''
-			if self._request("GET",params,header, body)!=True:
-				self.imgBlocks.setImage('')
-				return False
-			data = self.sData
-			fName = file
-			f = open(TEMPFOLDER + self.filename + ".png", 'wb')
-			f.write(data)
-			f.close()
-		else:
-			f = TEMPFOLDER + self.filename + ".png"
-			today = datetime.datetime.now()
-			atime = int(time.mktime(today.timetuple()))
-			mtime = atime
-			times = (atime,mtime)
-			os.utime(f, times)
-		self.path = TEMPFOLDER + self.filename + ".png"
-		self.imgBlocks.setImage(self.path)
-		return True
-	
-	def _request(self, action, params, header, body ):
-		try:
-			self.connection.request(action, self.sTargetUrl+params, body, header)
-		except:
-			print "Connection Error"
-			return False
-		response = self.connection.getresponse()
-		if response.status != 200:
-			print response.status, response.reason
-			return False
-		else:
-			#-print response.status, response.reason
-			data = response.read()
-			if data != '':
-				self.sData = data
-			else:
-				return False
-		return True	
-	
-	def connect (self, targetserver):
-		self.sTargetServer=targetserver
-		self.sTargetPort = "80"
-		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
-
 class get_file(Thread):
 	
-	def __init__ (self,params,FileName,referer_url,imgBlocks=""):
+	def __init__ (self,params,FileName,referer_url,imgBlocks="",function='',window='',result=''):
 		Thread.__init__(self)
 		self.parms = params[params.find('?'):len(params)]
 		self.referer_url = referer_url
@@ -367,6 +327,9 @@ class get_file(Thread):
 		self.tarname = FileName[0:FileName.rfind('\\')].replace('\\','_')
 		self.tarfilename = FileName[FileName.find('\\')+1:len(FileName)]
 		self.imgBlocks = imgBlocks
+		self.function = function
+		self.window = window
+		self.result = result
 		self.connect(self.host)
 		
 	def run(self):	
@@ -422,6 +385,8 @@ class get_file(Thread):
 			self.path = TEMPFOLDER + self.filename
 			self.imgBlocks.setVisible(True)
 			self.imgBlocks.setImage(self.path)
+		if self.function != '':
+			self.function(self.result)
 		return
 	
 	def _request(self, action, params, header, body ):

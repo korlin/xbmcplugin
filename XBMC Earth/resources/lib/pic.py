@@ -18,7 +18,6 @@ __language__ = xbmc.Language( os.getcwd() ).getLocalizedString
 from threading import Thread
 from googleearth_coordinates import  Googleearth_Coordinates
 from xbmcearth_communication import Xbmcearth_communication
-from xbmcearth_communication import get_pic
 from xbmcearth_communication import get_file
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter

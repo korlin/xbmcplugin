@@ -18,6 +18,8 @@
 		<string id="10001">Start-Punkt (z.B. Berlin)</string>
 		<string id="10002">Ziel (z.B. Hamburg Reeperbahn)</string>
 		<string id="10003">nächste %s Treffer</string>
+		<string id="10004">wählen Sie den Startpunkt aus:</string>
+		<string id="10005">wählen Sie das Ziel aus:</string>
 		
 		<!-- Update messages -->
 		<string id="1000">Deine Version ist aktuell.</string>
