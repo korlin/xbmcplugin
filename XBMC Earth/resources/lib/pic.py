@@ -1,4 +1,4 @@
-import xbmc, xbmcgui, time, threading, datetime, os, urllib, httplib, sys, glob, random
+import xbmc, xbmcgui, time, threading, datetime, os, urllib, httplib, sys, glob, random, traceback
 
 # Script constants
 __scriptname__ = "XBMC Earth"
@@ -53,7 +53,15 @@ class Pic_GUI( xbmcgui.WindowXMLDialog ):
 			self.title = urllib.unquote(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty("Title"))
 			self.info = urllib.unquote(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty("Genre"))
 			#set Pic
-			self.getControl( 20 ).setImage(self.pic)
+			if self.pic != "":
+				self.getControl( 20 ).setImage(self.pic)
+				#self.getControl(21).setVisible(0)
+				#self.getControl(20).setVisible(1)
+			else:
+				#self.getControl(21).setVisible(1)
+				#self.getControl(20).setVisible(0)
+				self.width = 425
+				self.height = 350
 			if self.width < 700:
 				self.getControl( 20 ).setWidth(self.width)
 				self.getControl( 20 ).setHeight(self.height)
@@ -68,7 +76,7 @@ class Pic_GUI( xbmcgui.WindowXMLDialog ):
 			self.getControl( 206 ).setLabel(self.title)
 			self.getControl( 207 ).setLabel(self.info)
 		except:
-			pass
+			traceback.print_exc()
 
 	def _close_dialog( self ):
 		self.close()
@@ -135,6 +143,17 @@ class Pic_GUI( xbmcgui.WindowXMLDialog ):
 			self.pic = TEMPFOLDER + "\\Locr\\medium\\" + self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('photo_id') + ".jpg" 
 			self.width=int(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('width'))
 			self.height=int(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('height'))
+		#webcams
+		if self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('type')  == "webcams":
+			self.MainWindow.connect()
+			current = get_file("http://images.webcams.travel/webcam/"+self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('id')+".jpg", "Webcams\\medium\\" +  self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('id') + ".jpg", referer_url,'','','','',0)
+			current.start()
+			current.join(1000)
+			im = Image.open(TEMPFOLDER + "\\Webcams\\medium\\"+self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('id')+".jpg")
+			size = im.size			
+			self.pic = TEMPFOLDER + "\\Webcams\\medium\\"+self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('id')+".jpg"
+			self.width=size[0]
+			self.height=size[1]
 		
 		
 	#list_item.setInfo( 'video', { "Title": photos["photo_title"], "Genre": "Upload Date: " + photos["upload_date"] + " - Owner: " + photos["owner_name"]})

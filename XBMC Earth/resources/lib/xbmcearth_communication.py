@@ -153,6 +153,29 @@ class Xbmcearth_communication:
 		f.write(data)
 		f.close()
 		return self.sData
+		
+	def get_Weather(self, url, param):
+		header = {
+			"Host":"www.google.com",
+			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"Accept":"*/*",
+			"Accept-Language":"de-de,de",
+			"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+			"Keep-Alive":"300",
+			"Proxy-Connection":"keep-alive",
+			"Referer": url} 
+		params = param
+		body = ''
+		self.sTargetUrl = "http://www.google.com/ig/api"
+		print self.sTargetUrl + params
+		if self._request("GET",params,header, body)!=True:
+			return False
+		data = self.sData
+		fName = file
+		f = open(TEMPFOLDER + "weather.xml", 'wb')
+		f.write(data)
+		f.close()
+		return self.sData
 	
 	def get_Youtube_html(self, url, param):
 		header = {
@@ -178,36 +201,73 @@ class Xbmcearth_communication:
 		
 	def stream_Youtube(self, v_url):
 		request = urllib2.Request(v_url) 
+		#proxy=[urllib2.ProxyHandler({'http':'inetproxy.global.bdfgroup.net:8080'})]
+		#opener=urllib2.build_opener(proxy)
 		opener = urllib2.build_opener(SRH) 
 		f = opener.open(request) 
 		vid_url = f.url 
 		return vid_url
+		
+	def get_Webcams(self, url, param):
+		header = {
+			"Host":"api.webcams.travel",
+			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"Accept":"*/*",
+			"Accept-Language":"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3",
+			"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+			"Keep-Alive":"300",
+			"Proxy-Connection":"keep-alive",
+			"Referer": url} 
+		params = param
+		body = ''
+		self.sTargetUrl = "http://api.webcams.travel/rest"
+		if self._request("GET",params,header, body)!=True:
+			return False
+		data = self.sData
+		fName = file
+		f = open(TEMPFOLDER + "webcams.xml", 'wb')
+		f.write(data)
+		f.close()
+		return self.sData
 
-	def get_Google_Analytics(self, url, pagetitle, page):
+	def get_Google_Analytics(self, url, pagetitle, page,window):
+		self.window=window
 		header = {
 			"Host":"www.google-analytics.com",
-			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+			"User-Agent":"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)",
 			"Accept":"*/*",
 			"UA-CPU": "x86",
 			"Accept-Language":"de",
 			"Connection": "Keep-Alive",
 			"NovINet": "v1.0",
-			"Referer": url} 
+			"Referer": "http://www.neomy.de/"} 
 		self.connect("www.google-analytics.com")
 		import random
 		utmn_rnd =        str(random.randint(1000000000,9999999999))
-		cookie_rand = str(random.randint(10000000,99999999))
-		random=       str(random.randint(1000000000,2147483647))
-		today=        str(int(time.mktime(datetime.datetime.now().timetuple())))
+		utmhid_rnd = str(random.randint(1000000000,9999999999))
+		#cookie_rand = str(random.randint(10000000,99999999))
+		#random=       str(random.randint(1000000000,2147483647))
+		#today=        str(int(time.mktime(datetime.datetime.now().timetuple())))
 
-		params = "?utmwv=1.3&utmn=$utmn&utmcs=iso-8859-1&utmsr=1920x1200&utmsc=32-bit&utmul=de&utmje=0&utmdt=$utmdt&utmhn=$utmhn&utmhid=1262108431&utmr=-&utmp=$utmp&utmac=UA-2760691-2"
-		params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.1%3B%2B__utmb%3D$utmb%3B%2B__utmc%3D$utmc%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
+		params = "?utmwv=1.3&utmn=$utmn&utmcs=iso-8859-1&utmsr=$utmsr&utmsc=32-bit&utmfl=9.0%20r47&utmul=de&utmje=1&utmdt=$utmdt&utmhn=$utmhn&utmhid=$utmhid&utmr=-&utmp=$utmp&utmac=$utmac"
+		#params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.1%3B%2B__utmb%3D$utmb%3B%2B__utmc%3D$utmc%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
+		params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.$utma6%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
 		params = Template(params)
-		params = params.substitute(utmn = utmn_rnd, utmdt = pagetitle, utmhn = "www.xbmcmaps.de", utmp = page,	utma1 = cookie_rand, utma2 = random, utma3 = today, utma4 = today, utma5 = today, utmb = cookie_rand, utmc = cookie_rand, utmz1 = cookie_rand, utmz2 = today)		
+		params = params.substitute(utmn = utmn_rnd, utmsr=str(self.window.getWidth())+'x'+str(self.window.getHeight()), utmdt = pagetitle, utmhn = self.window.set.settings["analytics"]["url"], utmp = page, utmhid = utmhid_rnd, utmac = self.window.set.settings["analytics"]["utmac"],	utma1 = self.window.set.settings["analytics"]["cookie_number"], utma2 = self.window.set.settings["analytics"]["random"], utma3 = self.window.set.settings["analytics"]["first_use"], utma4 = self.window.set.settings["analytics"]["last_use"], utma5 = self.window.set.settings["analytics"]["now"], utma6 = self.window.set.settings["analytics"]["count"], utmb = self.window.set.settings["analytics"]["random"], utmc = self.window.set.settings["analytics"]["random"], utmz1 = self.window.set.settings["analytics"]["cookie_number"], utmz2 = self.window.set.settings["analytics"]["first_use"])		
 		#params = str(params)
-		print params.replace('&','\n&').replace('__','\n__')
+		print params
 		body = ''
 		self.sTargetUrl = "http://www.google-analytics.com/__utm.gif"
+		if self._request("GET",params,header, body)!=True:
+			return False
+		data = self.sData
+		fName = file
+		#TEMPFOLDER = "Q:\\temp\\"
+		f = open(TEMPFOLDER + "utm.gif", 'wb')
+		f.write(data)
+		f.close()
+		return self.sData
+		
 		
 	def get_Maps_JS(self, url, key):
 		#http://maps.google.com/maps?file=api&v=2&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ
@@ -281,6 +341,8 @@ class Xbmcearth_communication:
 	def connect (self, targetserver, targetport=80):
 		self.sTargetServer=targetserver
 		self.sTargetPort = targetport
+		#self.sTargetServer="inetproxy.global.bdfgroup.net"
+		#self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 	
 	def close(self):
@@ -316,7 +378,7 @@ class Xbmcearth_communication:
 
 class get_file(Thread):
 	
-	def __init__ (self,params,FileName,referer_url,imgBlocks="",function='',window='',result=''):
+	def __init__ (self,params,FileName,referer_url,imgBlocks="",function='',window='',result='',cache=1):
 		Thread.__init__(self)
 		self.parms = params[params.find('?'):len(params)]
 		self.referer_url = referer_url
@@ -330,6 +392,7 @@ class get_file(Thread):
 		self.function = function
 		self.window = window
 		self.result = result
+		self.cache = cache
 		self.connect(self.host)
 		
 	def run(self):	
@@ -340,7 +403,7 @@ class get_file(Thread):
 		try:
 			os.mkdir(TEMPFOLDER + folders[0] + '\\' + folders[1])
 		except: pass
-		if not os.path.exists(TEMPFOLDER + self.filename):
+		if not os.path.exists(TEMPFOLDER + self.filename) or self.cache == 0:
 			#try:
 			#	tar = tarfile.open(TEMPFOLDER + self.tarname + ".tar", "r")
 			#	tar_file = tar.getmember(self.tarfilename)
@@ -411,6 +474,8 @@ class get_file(Thread):
 	def connect (self, targetserver):
 		self.sTargetServer=targetserver
 		self.sTargetPort = "80"
+		#self.sTargetServer="inetproxy.global.bdfgroup.net"
+		#self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 		
 class SRH(urllib2.HTTPRedirectHandler): 

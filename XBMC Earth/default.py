@@ -3,8 +3,11 @@
 #http://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&api_key=7458156304b50b74b675aca223f44d28&min_upload_date=977957078&sort=interestingness-desc&bbox=13.011494%2C52.023480%2C13.911494%2C52.923480&extras=+date_taken%2C+owner_name%2C+geo%2C+o_dims%2C&per_page=20
 #http://picasaweb.google.com/data/feed/api/featured?bbox=13.011494,52.023480,13.911494,52.923480&max-results=20&alt=json
 #http://www.locr.com/api/get_photos_json.php?longitudemin=13.011494&latitudemin=52.023480&longitudemax=13.911494&latitudemax=52.923480&category=popularity&locr=true
+#http://iploc.mwudka.com/iploc/json
+#http://www.programmableweb.com/apitag/mapping/2
+#http://wms.jpl.nasa.gov/tiled.html
 
-import xbmc, xbmcgui, time, threading, datetime, os, urllib, httplib, sys, glob, random
+import xbmc, xbmcgui, time, threading, datetime, os, urllib, httplib, sys, glob, random, traceback
 
 try: Emulating = xbmcgui.Emulating
 except: Emulating = False
@@ -30,6 +33,7 @@ from googleearth_coordinates import  Googleearth_Coordinates
 from xbmcearth_communication import *
 from pic import Pic_GUI
 import update 
+import settings
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter
 import aggdraw
@@ -41,34 +45,55 @@ from global_data import *
 TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp" )
 
 
-class MyPlayer( xbmc.Player ) :  
-	def __init__ ( self ): 
-		xbmc.Player.__init__( self )  
+class MyPlayer( xbmc.Player ) :
+
+	cpic = ''
+	
+	def __init__ ( self, window ): 
+		xbmc.Player.__init__( self )
+		self.window = window  
 	
 	def onPlayBackStarted(self): 	
-		x = 0
-		while x == 0:
-			try:
-				if self.getTime() > 1.0:
-					response = xbmc.executehttpapi("Action(18)")
-					x = 1
-			except:
-				time.sleep(1)
-				pass
-				
-				
+	#	x = 0
+	#	while x == 0:
+	#		try:
+	#			if self.getTime() > 1.0:
+	#				response = xbmc.executehttpapi("Action(18)")
+	#				x = 1
+	#		except:
+	#			time.sleep(1)
+	#			pass
+		self.cpic = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic="", width="425", height="350", mainWindow = self.window)
+		
+	
+	def onPlayBackEnded(self):
+		try:
+			print "PlayBackEnd"
+			self.cpic._close_dialog()
+		except:
+			pass
+	
+	def onPlayBackStopped(self):
+		try:
+			print "PLaybackStopped"
+			self.cpic._close_dialog()
+		except:
+			pass
+	
 
 
 class MainClass(xbmcgui.WindowXML):
-	lon = 13.411494
-	lat = 52.523480
-	zoom = 8
+	#############
+	#Value are set during init from settings file
+	lon = 13.411494 #Longitude
+	lat = 52.523480 #Latitude
+	zoom = 8	#Zoomlevel
+	hybrid = 1 	#switch between the views
+	#############
 	URL_satPic = "http://khm2.google.com/kh?v=44"
 	URL_mapHybrid = "http://mt0.google.com/mt?v=w2t.88&x="
 	URL_mapStreet = "http://mt0.google.com/mt?v=w2.88&x="
 	URL_mapArea = "http://mt0.google.com/mt?v=w2p.87&x="
-	xbmcearth_communication = Xbmcearth_communication()
-	markercontainer = []
 	map_size_x = 3	#Groeße der angezeigten Karte (3 Tiles) muss ungerade sein
 	map_size_y = 3  #Groeße der angezeigten Karte (3 Tiles) muss ungerade sein
 	map_pos_x_windowed = 320
@@ -80,30 +105,33 @@ class MainClass(xbmcgui.WindowXML):
 	map_pos_x = 0	#will be calculated
 	map_pos_y = 0	#will be calculated
 	pic_size = 0	#will be calculated
-	hybrid = 1 	#enables the hybridview
+	
 	map_move = 0
+	markercontainer = dict()
 	routecontainer = dict({'enable': 0, 'linestring': ''}) 
 	piccontainer = dict({'enable': 0, 'url_query': '', 'url_pic': ''})
+	show_weather = False
 	cleanup_thread = ''
-	player =  MyPlayer()
+	player =  ''
+	xbmcearth_communication = Xbmcearth_communication()
+	set = settings.Settings()
+	
 	
 	def __init__(self, *args, **kwargs):
 		global URL_satPic
 		global cookie_txt
 		if Emulating: 
 			xbmcgui.Window.__init__(self)
-		
+		self.set.read_settings()
+		self.init_startup_values()
 		#self.settings = {}
 		#self._initSettings(forceReset=False)
 		# check for script update
-		if True: #self.settings[self.SETTING_CHECK_UPDATE]:    # check for update ?
+		if self.set.settings["options"]["update"]:    # check for update ?
 			scriptUpdated = updateScript(False, False)
 		else:
 			scriptUpdated = False
-		
-
-		
-
+		print os.name
 		#Clear cached Files
 		self.cleanup_thread = file_remove(self)
 		self.cleanup_thread.start()
@@ -119,8 +147,7 @@ class MainClass(xbmcgui.WindowXML):
 		x = maps_js.find('_mSatelliteToken = "') #find CookieData
 		cookie_txt = maps_js[x+20:maps_js.find('";',x+20)]
 		self.URL_satPic = self.URL_satPic + "&cookie=" + cookie_txt + "&t="  #extend Sat_Pic URL
-		
-		
+				
 		#setup picsize
 		w = 720
 		h = 576
@@ -159,20 +186,54 @@ class MainClass(xbmcgui.WindowXML):
 				Map_pos_y = (self.map_pos_y - Pic_size) + (Pic_size*y)
 				self.mapBlocks[x].append(xbmcgui.ControlImage(Map_pos_x,Map_pos_y,Pic_size,Pic_size, ''))
 				self.addControl(self.mapBlocks[x][y])
-
+		self.player = MyPlayer(0)
+		self.player.__init__(self)
 		self.route_pic = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.route_pic)
-		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Start Version" + __version__ ), "/start.html")
+		self.nasa_view = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
+		self.addControl(self.nasa_view)
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Start Version:" + str(__version__) ), "/xbmc_earth/start.html", self)
+		
+	def init_startup_values(self):
+		self.lon  = self.set.settings["geo"]["lon"]
+		self.lat  = self.set.settings["geo"]["lat"]
+		self.zoom  = self.set.settings["geo"]["zoom"]
+		self.hybrid = self.set.settings["geo"]["hybrid"]
+		self.init_analytics()
+		
+	def init_analytics(self):
+		time_now = str(int(time.mktime(datetime.datetime.now().timetuple())))
+		if self.set.settings["analytics"]["cookie_number"] == "":
+			self.set.settings["analytics"]["cookie_number"] = str(random.randint(10000000,99999999))
+		if self.set.settings["analytics"]["random"] == "":
+			self.set.settings["analytics"]["random"] = str(random.randint(1000000000,2147483647))
+		if self.set.settings["analytics"]["first_use"] == "":
+			self.set.settings["analytics"]["first_use"] = time_now
+		if self.set.settings["analytics"]["last_use"] == "":
+			self.set.settings["analytics"]["last_use"] = time_now
+		if self.set.settings["analytics"]["now"] == "":
+			self.set.settings["analytics"]["now"] = time_now
+		self.set.settings["analytics"]["last_use"] = self.set.settings["analytics"]["now"]
+		self.set.settings["analytics"]["now"] = time_now
+		self.set.settings["analytics"]["count"] += 1
 		
 	
+	def save_current_values(self):
+		self.set.settings["geo"]["lon"] = self.lon
+		self.set.settings["geo"]["lat"] = self.lat
+		self.set.settings["geo"]["zoom"] = self.zoom
+		self.set.settings["geo"]["hybrid"] = self.hybrid 
+		self.set.write_settings()
+		
 	def onInit(self):
 		self.getControl(2001).setVisible(0)
-		for button_id in range( 100, 107 ):
+		self.getControl(2003).setVisible(False)
+		for button_id in range( 100, 108 ):
 			try:
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
 				pass
-		for button_id in range( 110, 114 ):
+		for button_id in range( 109, 114 ):
 			try:
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
@@ -207,6 +268,12 @@ class MainClass(xbmcgui.WindowXML):
 			self.showYoutube()
 		elif controlID == 106:
 			self.search_Route()
+		elif controlID == 107:
+			self.showWebcams()
+		elif controlID == 109:
+			import context
+			con = context.GUI( "script-%s-DialogContextMenu.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0,mainWindow = self)
+			del con
 		elif controlID == 110:
 			self.hybrid = 1
 			self.drawSAT()
@@ -242,7 +309,7 @@ class MainClass(xbmcgui.WindowXML):
 		googleearth_coordinates = Googleearth_Coordinates()
 		#main_menu active
 		if self.map_move == 0:
-			if action.getButtonCode() == 61467 or action.getButtonCode() == REMOTE_BACK or action.getButtonCode() == pad_button_back:
+			if action.getButtonCode() == 61467 or action.getButtonCode() == REMOTE_BACK or action.getButtonCode() == pad_button_back or action in ACTION_CANCEL_DIALOG:
 				if self.routecontainer['enable'] == 1:
 					self.routecontainer['enable'] = 0
 					self.getControl(2001).setVisible(0)
@@ -252,6 +319,9 @@ class MainClass(xbmcgui.WindowXML):
 					self.delete_markers()
 					self.getControl(2001).setVisible(0)
 					self.drawSAT()
+				elif self.show_weather == True:
+					self.getControl(2003).setVisible(False)
+					self.show_weather = False	
 				else:
 					self.goodbye()
 		#map_move active
@@ -356,6 +426,10 @@ class MainClass(xbmcgui.WindowXML):
 			self.background.join(1.0)
 		except:
 			pass
+		try:
+			self.save_current_values()
+		except:
+			traceback.print_exc()
 		self.close()
 		
 	def connect(self):
@@ -393,6 +467,8 @@ class MainClass(xbmcgui.WindowXML):
 			self.ziel = ch.selection
 			del ch
 		self.proc_route_result(self.planRoute( self.start, self.ziel))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Search_Route"), urllib.quote("/xbmc_earth/search_route.html?q="+str(self.start)+" - " + str(self.ziel) + "&cat=Route_Search"),self)
+
 		self.drawSAT()	
 	
 	def planRoute(self, start, ziel):
@@ -493,6 +569,8 @@ class MainClass(xbmcgui.WindowXML):
 	#Panoramio Support
 	def showPanoramio(self):
 		self.proc_panoramio_result(self.getPanoramio(0,20))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Show Panoramio"), urllib.quote("/xbmc_earth/panoramio.html"),self)
+
 		self.piccontainer["enable"] = 1
 		self.piccontainer["type"] = "Panoramio"
 		
@@ -572,15 +650,17 @@ class MainClass(xbmcgui.WindowXML):
 		list_item.setProperty('lat',str(photo["lat"]))
 		list_item.setProperty('photo_file_url',photo["photo_file_url"])
 		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('id',str(photo["photo_id"]))
 		list_item.setProperty('width',str(photo["width"]))
 		list_item.setProperty('height',str(photo["height"]))
 		list_item.setProperty('type',"Panoramio")
-		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.markercontainer[str(photo["photo_id"])]=marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32)
 		self.addItem(list_item,0)
 	
 	#Flickr Support
 	def showFlickr(self):
 		self.proc_flickr_result(self.getFlickr_bbox(1,20))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Show Flickr"), urllib.quote("/xbmc_earth/flickr_bbox.html"),self)
 		self.piccontainer["enable"] = 1
 		self.piccontainer["type"] = "Flickr"
 	
@@ -665,15 +745,17 @@ class MainClass(xbmcgui.WindowXML):
 		list_item.setProperty('lat',str(photo["lat"]))
 		list_item.setProperty('farm',str(photo["farm"]))
 		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('id',str(photo["photo_id"]))
 		list_item.setProperty('server',str(photo["server"]))
 		list_item.setProperty('secret',str(photo["secret"]))
 		list_item.setProperty('type',"flickr")
-		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.markercontainer[str(photo["photo_id"])] = marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER + photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32)
 		self.addItem(list_item,0)
 		
 	#Locr Support
 	def showLocr(self):
 		self.proc_locr_result(self.getLocr(1,20))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Show Locr"), urllib.quote("/xbmc_earth/locr.html"),self)
 		self.piccontainer["enable"] = 1
 		self.piccontainer["type"] = "Locr"
 	
@@ -754,15 +836,17 @@ class MainClass(xbmcgui.WindowXML):
 		list_item.setProperty('lat',str(photo["lat"]))
 		list_item.setProperty('photo_file_url',photo["photo_file_url"])
 		list_item.setProperty('photo_id',str(photo["photo_id"]))
+		list_item.setProperty('id',str(photo["photo_id"]))
 		list_item.setProperty('width',str(photo["width"]))
 		list_item.setProperty('height',str(photo["height"]))
 		list_item.setProperty('type',"locr")
-		self.markercontainer.append(marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER +"\\"+ photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32))
+		self.markercontainer[str(photo["photo_id"])] = marker(self, float(photo["lat"]), float(photo["lon"]), TEMPFOLDER +"\\"+ photo["path"]+str(photo["photo_id"])+".jpg",16,32,32,32)
 		self.addItem(list_item,0)
 		
 	#Youtube Support
 	def showYoutube(self):
 		self.proc_youtube_result(self.getYoutube(1,20))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Show Youtube"), urllib.quote("/xbmc_earth/youtube.html"),self)
 		self.piccontainer["enable"] = 1
 		self.piccontainer["type"] = "Youtube"
 	
@@ -849,15 +933,112 @@ class MainClass(xbmcgui.WindowXML):
 		list_item.setInfo( 'video', { "Title": video["name"], "Genre": "Create Date: " + video["created"] + " - Description: " + video["description"]}) 				
 		#list_item.setProperty('Piclink', TEMPFOLDER + "\\Youtube\\medium\\"+str(video["video_id"])+".jpg")
 		list_item.setProperty('Title', urllib.quote(video["name"]))
-		#list_item.setProperty('Genre', urllib.quote("Create Date: " + video["created"] + " - Owner: " + video["owner_name"]))
+		list_item.setProperty('Genre', urllib.quote("Create Date: " + video["created"]))#+ " - Owner: " + video["owner_name"]))
 		list_item.setProperty('lon',str(video["lon"]))
 		list_item.setProperty('lat',str(video["lat"]))
 		#list_item.setProperty('video_file_url',video["video_file_url"])
 		list_item.setProperty('video_id',str(video["video_id"]))
+		list_item.setProperty('id',str(video["video_id"]))
 		#list_item.setProperty('width',str(video["width"]))
 		#list_item.setProperty('height',str(video["height"]))
 		list_item.setProperty('type',"youtube")
-		self.markercontainer.append(marker(self, float(video["lat"]), float(video["lon"]), TEMPFOLDER + video["path"]+str(video["video_id"])+".jpg",16,32,32,32))
+		self.markercontainer[str(video["video_id"])] = marker(self, float(video["lat"]), float(video["lon"]), TEMPFOLDER + video["path"]+str(video["video_id"])+".jpg",16,32,32,32)
+		self.addItem(list_item,0)
+		
+	#Flickr Support
+	def showWebcams(self):
+		self.proc_webcams_result(self.getWebcams_bbox(1,20))
+		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Show Webcams"), urllib.quote("/xbmc_earth/webcams.html"),self)
+		self.piccontainer["enable"] = 1
+		self.piccontainer["type"] = "Webcams"
+	
+	def getWebcams_bbox(self, page, size):
+		Lon = self.lon
+		Lat = self.lat
+		Zoom = self.zoom
+		googleearth_coordinates = Googleearth_Coordinates()
+		coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
+		coord_dist =[]
+		coord_dist = googleearth_coordinates.getLatLong(coord)
+		center_lon = coord_dist[0]+(coord_dist[2]/2)
+		center_lat = coord_dist[1]+(coord_dist[3]/2)
+		distance = googleearth_coordinates.getDistance(center_lat,center_lon,center_lat+(coord_dist[3]*1.5),center_lon+(coord_dist[2]*1.5))
+		self.xbmcearth_communication.connect("api.webcams.travel")
+		result = self.xbmcearth_communication.get_Webcams(referer_url,"?method=wct.webcams.list_nearby&devid=" + webcams_key + "&format=json&lat="+str(center_lat)+"&lng="+str(center_lon)+"&radius="+str(distance)+"&unit=km&page="+str(page)+"&per_page="+str(size))
+		if result != False:
+			result = simplejson.loads(result)
+			index = 0
+			results = result['webcams']
+			resultcontainer = dict()
+			resultcontainer["count"] = results['count']
+			resultcontainer["start"] = page + 1
+			resultcontainer["size"] = size
+			results = results['webcam']
+			placemark_seq = []
+			resultcontainer["Placemarks"] = placemark_seq
+			for webcams in results:
+				placemark = dict()
+				resultcontainer["Placemarks"].append(placemark)
+				resultcontainer["Placemarks"][index]["name"] = webcams["title"]
+				resultcontainer["Placemarks"][index]["id"] = webcams["webcamid"]
+				resultcontainer["Placemarks"][index]["webcam_file_url"] = webcams["daylight_icon_url"]
+				resultcontainer["Placemarks"][index]["lon"] = webcams["longitude"]
+				resultcontainer["Placemarks"][index]["lat"] = webcams["latitude"]
+				#resultcontainer["Placemarks"][index]["width"] = webcams["width"]
+				#resultcontainer["Placemarks"][index]["height"] = webcams["height"]
+				resultcontainer["Placemarks"][index]["upload_date"] = datetime.date.fromtimestamp(webcams["last_update"]).ctime()
+				resultcontainer["Placemarks"][index]["owner_name"] = webcams["user"]
+				resultcontainer["Placemarks"][index]["rating"] = webcams["rating_avg"]
+				resultcontainer["Placemarks"][index]["rating_count"] = webcams["rating_count"]
+				#resultcontainer["Placemarks"][index]["secret"] = webcams["secret"]
+				index += 1
+			return resultcontainer
+		else:
+			return False
+		
+	def proc_webcams_result(self, result):
+		if result != False:
+			self.clearList()
+			self.delete_markers()
+			if  result["count"] > result["start"]*result["size"]:
+				list_item = xbmcgui.ListItem(__language__( 10003 ) % (str(result["size"])), '', "", "")
+				list_item.setInfo( 'video', { "Title": __language__( 10003 ) % (str(result["size"])), "Genre": str(result["count"]) + " Webcams"})
+				list_item.setProperty('type',"webcams")
+				list_item.setProperty('next',"next")
+				list_item.setProperty('start',str(result["start"]))
+				list_item.setProperty('size',str(result["size"]))
+				self.addItem(list_item)
+			for webcam in result["Placemarks"]:	
+				webcam["path"]="\\Webcams\\small\\"
+				current = get_file(webcam["webcam_file_url"], "Webcams\\small\\"+str(webcam["id"])+".jpg", referer_url,'',self.add_webcams_hit,self,webcam,0)
+				thread_starter=0
+				while thread_starter<10:
+					try:
+						current.start()
+						thread_starter=100
+					except:
+						time.sleep(1)
+						thread_starter +=1
+
+				#current.join(1000)
+				
+
+			self.getControl(2001).setVisible(1)
+			
+	def add_webcams_hit(self, webcam):
+		list_item = xbmcgui.ListItem(webcam["name"], '', "", TEMPFOLDER + webcam["path"]+str(webcam["id"])+".jpg")
+		list_item.setInfo( 'video', { "Title": webcam["name"], "Genre": "Date taken: " + webcam["upload_date"] + " - Owner: " + webcam["owner_name"]}) 				
+		list_item.setProperty('Piclink', TEMPFOLDER + webcam["path"]+str(webcam["id"])+".jpg")
+		list_item.setProperty('Title', urllib.quote(webcam["name"]))
+		list_item.setProperty('Genre', urllib.quote("Date taken: " + webcam["upload_date"] + " - Owner: " + webcam["owner_name"]))
+		list_item.setProperty('lon',str(webcam["lon"]))
+		list_item.setProperty('lat',str(webcam["lat"]))
+		list_item.setProperty('webcam_id',str(webcam["id"]))
+		list_item.setProperty('id',str(webcam["id"]))
+		list_item.setProperty('rating',str(webcam["rating"]))
+		list_item.setProperty('rating_count',str(webcam["rating_count"]))
+		list_item.setProperty('type',"webcams")
+		self.markercontainer[str(webcam["id"])] = marker(self, float(webcam["lat"]), float(webcam["lon"]), TEMPFOLDER + webcam["path"]+str(webcam["id"])+".jpg",16,32,32,32)
 		self.addItem(list_item,0)
 		
 	#Search Support
@@ -872,6 +1053,7 @@ class MainClass(xbmcgui.WindowXML):
 			result = self.parse_kml(search_kml)
 			self.proc_search_result(result)
 			self.drawSAT()
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Search_Map"), urllib.quote("/xbmc_earth/search_map.html?q="+search_string+"&cat=Map_Search"),self)
 
 	
 	def proc_search_result(self, result):
@@ -897,14 +1079,16 @@ class MainClass(xbmcgui.WindowXML):
 				placemark["info"] = ''
 			index += 1
 			if len(result["Placemarks"]) > 1:
-				if "lon" in placemark and "lat" in placemark:
-					self.markercontainer.append(marker(self, float(placemark["lat"]), float(placemark["lon"]), BASE_RESOURCE_PATH + '\\skins\\Default\\media\\icon' + str(index) + '.png',12,38,24,38))
 				list_item = xbmcgui.ListItem(placemark["name"], '', BASE_RESOURCE_PATH + '\\skins\\Default\\media\\icon' + str(index) + '.png', BASE_RESOURCE_PATH + '\\skins\\Default\\media\\icon' + str(index) + '.png')
-			else:
 				if "lon" in placemark and "lat" in placemark:
-					self.markercontainer.append(marker(self, float(placemark["lat"]), float(placemark["lon"])))
-					self.zoom = 1
+					self.markercontainer[str(index)] = marker(self, float(placemark["lat"]), float(placemark["lon"]), BASE_RESOURCE_PATH + '\\skins\\Default\\media\\icon' + str(index) + '.png',12,38,24,38)
+					list_item.setProperty('id',str(index))
+			else:
 				list_item = xbmcgui.ListItem(placemark["name"], '', BASE_RESOURCE_PATH + '\\skins\\Default\\media\\arrow.png', BASE_RESOURCE_PATH + '\\skins\\Default\\media\\arrow.png')
+				if "lon" in placemark and "lat" in placemark:
+					self.markercontainer["1"] = marker(self, float(placemark["lat"]), float(placemark["lon"]))
+					list_item.setProperty('id','1')
+					self.zoom = 1
 			list_item.setInfo( 'video', { "Title": placemark["name"], "Genre": placemark["info"] }) 				
 			list_item.setProperty('name', urllib.quote(placemark["name"]))
 			if "lon" in placemark and "lat" in placemark:
@@ -1009,6 +1193,9 @@ class MainClass(xbmcgui.WindowXML):
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "youtube":
 			#youtube
 			self.zoom_to_youtube()
+		elif self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "webcams":
+			#youtube
+			self.zoom_to_webcams()
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('lon') != '' and self.getListItem(self.getCurrentListPosition()).getProperty('lat') != '':
 			lon_temp = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
 			lat_temp = float(self.getListItem(self.getCurrentListPosition()).getProperty('lat'))
@@ -1018,6 +1205,9 @@ class MainClass(xbmcgui.WindowXML):
 				zoom_temp = 2
 		else:
 			self.search_map(urllib.unquote(self.getListItem(self.getCurrentListPosition()).getProperty('name')))
+			lon_temp = self.lon
+			lat_temp = self.lat
+			zoom_temp = self.zoom
 			pass
 		self.lon = lon_temp
 		self.lat = lat_temp
@@ -1136,8 +1326,42 @@ class MainClass(xbmcgui.WindowXML):
 					base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
 					vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
 					self.player.stop()
-					self.player.play(vid_url) 
+					try:
+						self.player.play(vid_url,'',1) 
+					except:
+						print "old xbmc - starting fullscreen"
+						self.player.play(vid_url)
+						
 					self.getControl(2000).setVisible(1)
+					
+	
+	def zoom_to_webcams(self):
+		if self.getListItem(self.getCurrentListPosition()).getProperty('next')  == "next":
+			self.proc_webcams_result(self.getWebcams_bbox(int(self.getListItem(self.getCurrentListPosition()).getProperty('start')),int(self.getListItem(self.getCurrentListPosition()).getProperty('size')) ))
+			pass
+		else:
+			self.lon = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
+			self.lat = float(self.getListItem(self.getCurrentListPosition()).getProperty('lat'))
+			if self.getListItem(self.getCurrentListPosition()).getProperty('zoom') != '':
+				self.zoom = int(self.getListItem(self.getCurrentListPosition()).getProperty('zoom'))
+			elif self.zoom > 2:
+				self.zoom = 2
+			if self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "webcams":
+				self.getControl(2000).setVisible(0)
+				#self.map_move = 2
+				googleearth_coordinates = Googleearth_Coordinates()
+				coord=googleearth_coordinates.getTileRef(self.lon, self.lat, self.zoom)
+				coord_dist = googleearth_coordinates.getLatLong(coord)
+				self.lon = self.lon - coord_dist[2]
+				self.drawSAT()
+				current = get_file("http://images.webcams.travel/webcam/" + self.getListItem(self.getCurrentListPosition()).getProperty('id')+".jpg", "Webcams\\medium\\" + self.getListItem(self.getCurrentListPosition()).getProperty('id') + ".jpg", referer_url,'','','','',0)
+				current.start()
+				current.join(1000)
+				im = Image.open(TEMPFOLDER + "\\Webcams\\medium\\"+self.getListItem(self.getCurrentListPosition()).getProperty('id')+".jpg")
+				size = im.size
+				cpic = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic=TEMPFOLDER + "\\Webcams\\medium\\"+self.getListItem(self.getCurrentListPosition()).getProperty('id')+".jpg", width=size[0], height=size[1], mainWindow = self)
+				del cpic
+				self.getControl(2000).setVisible(1)
 	
 	
 	
@@ -1148,6 +1372,7 @@ class MainClass(xbmcgui.WindowXML):
 			self.pic_size = self.pic_size_full
 			self.map_move = 1
 			#Move Map to Fullscreen
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("switch to mapmove"), urllib.quote("/xbmc_earth/switch_to_mapmove.html"),self)
 			for x in range(self.map_size_x):
 				for y in range(self.map_size_y):
 					Pic_size = self.pic_size
@@ -1189,6 +1414,15 @@ class MainClass(xbmcgui.WindowXML):
 		current.join()
 		
 	def drawSAT(self):
+		"""
+		import nasa_onearth
+		nasa = nasa_onearth.draw_nasa(self,self.nasa_view)
+		nasa.start()
+		"""
+		if self.show_weather == True:
+			import weather
+			weatherdata = weather.get_weather(self,self.nasa_view)
+			weatherdata.start()
 		sat = draw_sat(self,self.satBlocks)
 		sat.start()
 		map = draw_map(self,self.mapBlocks)
@@ -1198,35 +1432,37 @@ class MainClass(xbmcgui.WindowXML):
 		map.join()
 		if self.routecontainer['enable'] == 1:
 			self.makeRoute(self.routecontainer['linestring'])
+			self.route_pic.setVisible(True)
 		else:
-			self.route_pic.setImage('')
+			self.route_pic.setVisible(False)
 		if self.hybrid == 1:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Hybrid" + __version__ ), "/Hybrid_act.html")
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Hybrid"), "/xbmc_earth/Hybrid_act.html",self)
 		elif self.hybrid == 2:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Map" + __version__ ), "/Map_act.html")
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Map"), "/xbmc_earth/Map_act.html",self)
 		elif self.hybrid == 3:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Area" + __version__ ), "/Area_act.html")
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Area"), "/xbmc_earth/Area_act.html",self)
 		elif self.hybrid == 0:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("XBMCEarth Satelite" + __version__ ), "/Satelite_act.html")
-		
-		#self.showFlickr()
-		#self.makeRoute('')
-		
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Satelite"), "/xbmc_earth/Satelite_act.html",self)
+
 	def redraw_markers(self):
-		for x in range(len(self.markercontainer)):
-			self.markercontainer[x].redraw_Marker()
+		for v,x in self.markercontainer.items():
+			x.redraw_Marker()
 			
 	def pulse_markers(self,pulse):
-		for x in range(len(self.markercontainer)):
-			if pulse == x:
-				self.markercontainer[x].pulse_Marker(1)		
-			else:
-				self.markercontainer[x].pulse_Marker(0)		
+		for v,x in self.markercontainer.items():
+			x.pulse_Marker(0)
+		self.markercontainer[pulse].pulse_Marker(1)		
+					
 			
 	def delete_markers(self):
-		while len(self.markercontainer) > 0:
-			self.markercontainer.pop()
-			
+		#for v,x in self.markercontainer.items():
+		#	x.pop()
+		try:
+			while 1==1:
+				self.markercontainer.popitem()
+		except:
+			pass
+		
 	def makeRoute(self, LineString ):
 		text = 'test-string'
 		fnt = BASE_RESOURCE_PATH + '\\skins\\Default\\media\\1.ttf'
@@ -1259,7 +1495,6 @@ class MainClass(xbmcgui.WindowXML):
 		im.save(TEMPFOLDER + '\\Route\\Route.png', format=fmt,**{"optimize":1})
 		self.route_pic.setImage('')
 		self.route_pic.setImage(TEMPFOLDER + '\\Route\\Route.png')
-		#self.route_pic.setImage(TEMPFOLDER + '\\test.png')
 		
 	
 	def get_current_POS(self, lon_marker, lat_marker):
@@ -1419,18 +1654,12 @@ class draw_sat(Thread):
 			satlist = []
 			map_center_x = int(self.window.map_size_x / 2)
 			map_center_y = int(self.window.map_size_y / 2)
+			current = get_file("http://wms.jpl.nasa.gov/wms.cgi?request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width="+str(768)+"&height="+str(768)+"&bbox="+str(coord_dist[0]-coord_dist[2])+","+str(coord_dist[1]-coord_dist[3])+","+str(coord_dist[0]+coord_dist[2]*2)+","+str(coord_dist[1]+coord_dist[3]*2),"Nasa\\z"+str(Zoom)+"\\"+coord+".jpg", referer_url)
+			current.start()
 			for x in range(self.window.map_size_x):
 				for y in range(self.window.map_size_y):
 					Lon = (self.window.lon - coord_dist[2]*map_center_x)+coord_dist[2]*x
 					Lat = (self.window.lat + coord_dist[3]*map_center_y)-coord_dist[3]*y
-					#if Lon > 360.0:
-					#	Lon -= 360.0
-					#elif Lon < 0.0:
-					#	Lon += 360.0
-					#if Lat < -90.0:
-					#	Lat += 180.0
-					#elif Lat > 90.0:
-					#	Lat -= 180.0u
 					coord=googleearth_coordinates.getTileRef(Lon, Lat, Zoom)
 					current = get_file(self.window.URL_satPic + coord, "Sat\\z"+str(Zoom)+"\\"+coord+".png", referer_url,self.satBlocks[x][y])
 					satlist.append(current)
@@ -1597,7 +1826,7 @@ class background_thread(Thread):
 			try:
 				time.sleep(1)
 				if self.window.getCurrentListPosition() != -1:
-					self.window.pulse_markers(int(self.window.getCurrentListPosition()))
+					self.window.pulse_markers(self.window.getListItem(self.window.getCurrentListPosition()).getProperty('id'))
 			except:
 				pass
 				#LOG( LOG_ERROR, self.__class__.__name__, "[%s]", sys.exc_info()[ 1 ] )	

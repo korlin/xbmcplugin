@@ -23,6 +23,13 @@
 			<width>300</width>
 			<height>320</height>
 		</control>
+		<control type="videowindow" id="21">
+			<description>video preview window</description>
+			<posx>7</posx>
+			<posy>9</posy>
+			<width>425</width>
+			<height>350</height>
+		</control>
 		            <!-- ** Required ** Do not change id or type-->
 		<control type="label" id="206">
 			<description>Title</description>

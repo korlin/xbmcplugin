@@ -7,6 +7,8 @@
 		<string id="104">locr</string>
 		<string id="105">Youtube</string>
 		<string id="106">Route planen</string>
+		<string id="107">Webcams</string>
+		<string id="109">mehr...</string>
 		<string id="110">Hybrid</string>
 		<string id="111">Satellite</string>
 		<string id="112">Karte</string>
@@ -20,6 +22,12 @@
 		<string id="10003">nächste %s Treffer</string>
 		<string id="10004">wählen Sie den Startpunkt aus:</string>
 		<string id="10005">wählen Sie das Ziel aus:</string>
+		<string id="10006">Name für Favorite 1</string>
+		<string id="10007">Name für Favorite 2</string>
+		<string id="10008">Name für Favorite 3</string>
+		<string id="10009">Favoriten</string>
+		<string id="10010">Funktionens</string>
+		<string id="10011">Wetter</string>
 		
 		<!-- Update messages -->
 		<string id="1000">Deine Version ist aktuell.</string>

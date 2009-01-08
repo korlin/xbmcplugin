@@ -72,8 +72,7 @@ referer_url = "http://www.xbmcmaps.de/"
 maps_key = "ABQIAAAA4EpbC7RHiE0W_bpP2qoPuRSrw_O3MTicr_dkITIGIFQfupbYjhTcVPvnKUaG17t4xvFMLOko2fKwTA"
 flickr_Key = "7458156304b50b74b675aca223f44d28"
 flickr_secret = "47ffb7c4085d29f6"
+webcams_key = "10ad699f388300714c8d9da493d80fb0"
 cookie_txt = ""
 
 run_backgroundthread = 1
-
-hybrid = 1
