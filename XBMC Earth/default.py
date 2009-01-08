@@ -15,7 +15,7 @@ except: Emulating = False
 # Script constants
 __scriptname__ = "XBMC Earth"
 __author__ = "MrLight"
-__version__ = "0.4"
+__version__ = "0.41"
 __date__ = '02-01-2009'
 xbmc.output(__scriptname__ + " Version: " + __version__ + " Date: " + __date__)
 
