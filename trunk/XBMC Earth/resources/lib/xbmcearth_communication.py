@@ -230,7 +230,7 @@ class Xbmcearth_communication:
 		f.close()
 		return self.sData
 
-	def get_Google_Analytics(self, url, pagetitle, page,window):
+	def get_Google_Analytics(self, url, pagetitle, page, window):
 		self.window=window
 		header = {
 			"Host":"www.google-analytics.com",

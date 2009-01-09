@@ -16,7 +16,7 @@ except: Emulating = False
 __scriptname__ = "XBMC Earth"
 __author__ = "MrLight"
 __version__ = "0.41"
-__date__ = '02-01-2009'
+__date__ = '09-01-2009'
 xbmc.output(__scriptname__ + " Version: " + __version__ + " Date: " + __date__)
 
 
@@ -54,29 +54,20 @@ class MyPlayer( xbmc.Player ) :
 		self.window = window  
 	
 	def onPlayBackStarted(self): 	
-	#	x = 0
-	#	while x == 0:
-	#		try:
-	#			if self.getTime() > 1.0:
-	#				response = xbmc.executehttpapi("Action(18)")
-	#				x = 1
-	#		except:
-	#			time.sleep(1)
-	#			pass
 		self.cpic = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic="", width="425", height="350", mainWindow = self.window)
 		
 	
 	def onPlayBackEnded(self):
 		try:
 			print "PlayBackEnd"
-			self.cpic._close_dialog()
+			self.cpic.close()
 		except:
 			pass
 	
 	def onPlayBackStopped(self):
 		try:
 			print "PLaybackStopped"
-			self.cpic._close_dialog()
+			self.cpic.close()
 		except:
 			pass
 	
@@ -127,10 +118,7 @@ class MainClass(xbmcgui.WindowXML):
 		#self.settings = {}
 		#self._initSettings(forceReset=False)
 		# check for script update
-		if self.set.settings["options"]["update"]:    # check for update ?
-			scriptUpdated = updateScript(False, False)
-		else:
-			scriptUpdated = False
+
 		print os.name
 		#Clear cached Files
 		self.cleanup_thread = file_remove(self)
@@ -186,7 +174,7 @@ class MainClass(xbmcgui.WindowXML):
 				Map_pos_y = (self.map_pos_y - Pic_size) + (Pic_size*y)
 				self.mapBlocks[x].append(xbmcgui.ControlImage(Map_pos_x,Map_pos_y,Pic_size,Pic_size, ''))
 				self.addControl(self.mapBlocks[x][y])
-		self.player = MyPlayer(0)
+		self.player = MyPlayer(xbmc.PLAYER_CORE_MPLAYER)
 		self.player.__init__(self)
 		self.route_pic = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.route_pic)
@@ -1327,7 +1315,7 @@ class MainClass(xbmcgui.WindowXML):
 					vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
 					self.player.stop()
 					try:
-						self.player.play(vid_url,'',1) 
+						self.player.play(vid_url) 
 					except:
 						print "old xbmc - starting fullscreen"
 						self.player.play(vid_url)
@@ -1861,6 +1849,8 @@ def updateScript(silent=False, notifyNotFound=False):
 if __name__ == '__main__':
 	# This is the main call 
 	#mydisplay = MainClass()
-	mydisplay = MainClass("script-%s-main.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0)
-	mydisplay.doModal()
-	del mydisplay
+	scriptUpdated = updateScript(False, False)
+	if scriptUpdated == False:
+		mydisplay = MainClass("script-%s-main.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0)
+		mydisplay.doModal()
+		del mydisplay
