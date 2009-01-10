@@ -106,6 +106,25 @@ class Pic_GUI( xbmcgui.WindowXMLDialog ):
 			#Try Action in MainWindow
 			self.MainWindow.onAction(action)
 			
+	def tryYoutube(self):
+		if self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('type')  == "youtube":
+			self.MainWindow.xbmcearth_communication.connect("www.youtube.com")
+			result = self.MainWindow.xbmcearth_communication.get_Youtube_html(referer_url,"?v="+self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('video_id'))
+			if result != False:
+				x = result.find('var swfArgs = ')
+				result =result[x+14:result.find(';',x+15)]
+				result = simplejson.loads(result)
+				base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
+				base_v_url
+				vid_url = self.MainWindow.xbmcearth_communication.stream_Youtube(base_v_url)
+				#player.glob_player.stop()
+				#try:
+				self.MainWindow.Player.play(vid_url)
+				#	
+				#except:
+				#	print "old xbmc - starting fullscreen"
+				#	player.glob_player.play(vid_url)
+			
 	def _actView(self):
 		self.MainWindow.lon = float(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('lon'))
 		self.MainWindow.lat = float(self.MainWindow.getListItem(self.MainWindow.getCurrentListPosition()).getProperty('lat'))

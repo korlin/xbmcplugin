@@ -45,6 +45,16 @@
 			<textcolor>DDced8da</textcolor>
 			<label></label>
 		</control>
+		<control type="label" id="2004">
+			<description>heading label</description>
+			<posx>-10</posx>
+			<posy>-10</posy>
+			<width>10</width>
+			<align>left</align>
+			<font>special13</font>
+			<textcolor>DDced8da</textcolor>
+			<label></label>
+		</control>
 		<control type="image">
 			<description>background image</description>
 			<posx>0</posx>
@@ -996,6 +1006,94 @@
 				<font>font10</font>
 				<textcolor>FFFFFFFF</textcolor>
                 <scroll>true</scroll>
+			</control>
+		</control>
+			<control type="group" id="3002">
+			<posx>-13</posx>
+			<posy>15</posy>
+			<visible>!VideoPlayer.IsFullscreen + Player.Playing + Player.HasVideo + Control.IsVisible(2004)</visible>
+			<animation effect="slide" time="500" start="0,-115" end="0,0" acceleration="-1.1">Visible</animation>
+			<animation effect="slide" time="500" start="0,0" end="0,-115" acceleration="1.1">Hidden</animation>  
+			<animation effect="slide" time="500" start="0,-115" end="0,0" acceleration="-1.1">WindowOpen</animation>
+			<animation effect="slide" time="500" start="0,0" end="0,-115" acceleration="1.1">WindowClose</animation>           
+			<control type="image">
+				<description>background top image</description>
+				<posx>-5</posx>
+				<posy>-25</posy>
+				<width>440</width>
+				<height>26</height>
+				<texture>ContextMenu_Top.png</texture>
+			</control>
+			<control type="image">
+				<description>background image</description>
+				<posx>-5</posx>
+				<posy>0</posy>
+				<width>440</width>
+				<height>380</height>
+				<texture>ContextMenu_Middle.png</texture>
+			</control>
+			<control type="image">
+				<description>background bottom image</description>
+				<posx>-5</posx>
+				<posy>380</posy>
+				<width>440</width>
+				<height>25</height>
+				<texture>ContextMenu_Bottom.png</texture>
+			</control>
+			<control type="videowindow">
+				<description>video preview window</description>
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>425</width>
+				<height>350</height>
+			</control>
+						<!-- progressbar dialog -->
+			<control type="label">
+				<description>Elapsed Time Label</description>
+				<posx>25</posx>
+				<posy>345</posy>
+				<width>110</width>
+				<height>20</height>
+				<font>font10</font>
+				<textcolor>white</textcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<info>Player.Time</info>
+				<visible>!Player.Seeking</visible>
+			</control>
+			<control type="label">
+				<description>Seek Time Label</description>
+				<posx>25</posx>
+				<posy>345</posy>
+				<width>110</width>
+				<height>20</height>
+				<font>font10</font>
+				<textcolor>white</textcolor>
+				<align>left</align>
+				<aligny>center</aligny>
+				<info>Player.SeekTime</info>
+				<visible>Player.Seeking</visible>
+			</control>
+			<control type="label">
+				<description>Duration Label</description>
+				<posx>400</posx>
+				<posy>345</posy>
+				<width>130</width>
+				<height>20</height>
+				<label>$INFO[Player.Duration]</label>
+				<font>font10</font>
+				<textcolor>white</textcolor>
+				<align>right</align>
+				<aligny>center</aligny>
+			</control>
+			<control type="progress" >
+				<description>Progressbar</description>
+				<posx>48</posx>
+				<posy>352</posy>
+				<width>329</width>
+				<height>5</height>
+				<info>Player.Progress</info>
+				<visible>true</visible>
 			</control>
 		</control>
 	</controls>

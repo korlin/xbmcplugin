@@ -1,5 +1,3 @@
-#http://maps.google.com//maps?f=d&source=s_d&saddr=Offenburg&daddr=Schutterwald&hl=de&geocode=&mra=ls&output=kml&jsv=140g&sll=48.449845,7.967885&sspn=0.06638,0.263672&abauth=86e35f80:%20v72OFahWiOC_BHLC05bUP-jow8s&absince=404
-#http://maps.google.com//maps?f=d&source=s_d&saddr=Offenburg&daddr=Schutterwald&hl=de&geocode=&mra=ls&output=kml
 #http://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&api_key=7458156304b50b74b675aca223f44d28&min_upload_date=977957078&sort=interestingness-desc&bbox=13.011494%2C52.023480%2C13.911494%2C52.923480&extras=+date_taken%2C+owner_name%2C+geo%2C+o_dims%2C&per_page=20
 #http://picasaweb.google.com/data/feed/api/featured?bbox=13.011494,52.023480,13.911494,52.923480&max-results=20&alt=json
 #http://www.locr.com/api/get_photos_json.php?longitudemin=13.011494&latitudemin=52.023480&longitudemax=13.911494&latitudemax=52.923480&category=popularity&locr=true
@@ -47,31 +45,38 @@ TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp" )
 
 class MyPlayer( xbmc.Player ) :
 
-	cpic = ''
+	
 	
 	def __init__ ( self, window ): 
 		xbmc.Player.__init__( self )
 		self.window = window  
 	
-	def onPlayBackStarted(self): 	
-		self.cpic = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic="", width="425", height="350", mainWindow = self.window)
+	def onPlayBackStarted(self): 
+		if self.window.playYoutube == True:
+			self.window.showLargeOverlay = True
+			self.window.hide_markers()
+		pass
 		
 	
 	def onPlayBackEnded(self):
 		try:
 			print "PlayBackEnd"
-			self.cpic.close()
+			if self.window.playYoutube == True:
+				self.window.showLargeOverlay = False
+				self.window.playYoutube = False
+				self.window.redraw_markers()
 		except:
 			pass
 	
 	def onPlayBackStopped(self):
 		try:
 			print "PLaybackStopped"
-			self.cpic.close()
+			if self.window.playYoutube == True:
+				self.window.showLargeOverlay = False
+				self.window.playYoutube = False
+				self.window.redraw_markers()
 		except:
 			pass
-	
-
 
 class MainClass(xbmcgui.WindowXML):
 	#############
@@ -102,8 +107,9 @@ class MainClass(xbmcgui.WindowXML):
 	routecontainer = dict({'enable': 0, 'linestring': ''}) 
 	piccontainer = dict({'enable': 0, 'url_query': '', 'url_pic': ''})
 	show_weather = False
+	showLargeOverlay = False
+	playYoutube = False
 	cleanup_thread = ''
-	player =  ''
 	xbmcearth_communication = Xbmcearth_communication()
 	set = settings.Settings()
 	
@@ -131,6 +137,8 @@ class MainClass(xbmcgui.WindowXML):
 		#Get maps.JS
 		maps_js = self.xbmcearth_communication.get_Maps_JS(referer_url, maps_key)
 		self.findTileURLs(maps_js)
+		self.Player = MyPlayer(xbmc.PLAYER_CORE_MPLAYER)
+		self.Player.__init__(self)
 		
 		x = maps_js.find('_mSatelliteToken = "') #find CookieData
 		cookie_txt = maps_js[x+20:maps_js.find('";',x+20)]
@@ -174,13 +182,12 @@ class MainClass(xbmcgui.WindowXML):
 				Map_pos_y = (self.map_pos_y - Pic_size) + (Pic_size*y)
 				self.mapBlocks[x].append(xbmcgui.ControlImage(Map_pos_x,Map_pos_y,Pic_size,Pic_size, ''))
 				self.addControl(self.mapBlocks[x][y])
-		self.player = MyPlayer(xbmc.PLAYER_CORE_MPLAYER)
-		self.player.__init__(self)
 		self.route_pic = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.route_pic)
 		self.nasa_view = xbmcgui.ControlImage(130,80,Pic_size*3,Pic_size*3, '')
 		self.addControl(self.nasa_view)
 		self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Start Version:" + str(__version__) ), "/xbmc_earth/start.html", self)
+		
 		
 	def init_startup_values(self):
 		self.lon  = self.set.settings["geo"]["lon"]
@@ -214,8 +221,11 @@ class MainClass(xbmcgui.WindowXML):
 		self.set.write_settings()
 		
 	def onInit(self):
+		if self.showLargeOverlay == False:
+			self.getControl(2004).setVisible(False) #Show VideoOverlay
 		self.getControl(2001).setVisible(0)
 		self.getControl(2003).setVisible(False)
+		
 		for button_id in range( 100, 108 ):
 			try:
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
@@ -302,6 +312,8 @@ class MainClass(xbmcgui.WindowXML):
 					self.routecontainer['enable'] = 0
 					self.getControl(2001).setVisible(0)
 					self.drawSAT()
+				elif self.playYoutube == True:
+					self.Player.stop()
 				elif self.piccontainer['enable'] == 1:
 					self.piccontainer['enable'] = 0
 					self.delete_markers()
@@ -408,7 +420,6 @@ class MainClass(xbmcgui.WindowXML):
 	def goodbye(self):
 		global run_backgroundthread
 		try:
-			self.player.stop()
 			run_backgroundthread = 0
 			self.cleanup_thread.join(1.0)
 			self.background.join(1.0)
@@ -850,7 +861,7 @@ class MainClass(xbmcgui.WindowXML):
 		center_lat = coord_dist[1]+(coord_dist[3]/2)
 		distance = googleearth_coordinates.getDistance(center_lat,center_lon,center_lat+(coord_dist[3]*1.5),center_lon+(coord_dist[2]*1.5))
 		self.xbmcearth_communication.connect("gdata.youtube.com")
-		result = self.xbmcearth_communication.get_Youtube(referer_url,"?location="+str(center_lat)+","+str(center_lon)+"!&location-radius="+str(distance)+"km&alt=json&start-index="+str(start)+"&max-results="+str(size))
+		result = self.xbmcearth_communication.get_Youtube(referer_url,"?orderby=viewCount&location="+str(center_lat)+","+str(center_lon)+"!&location-radius="+str(distance)+"km&alt=json&start-index="+str(start)+"&max-results="+str(size))
 		if result != False:
 			result = simplejson.loads(result)
 			index = 0
@@ -1305,6 +1316,9 @@ class MainClass(xbmcgui.WindowXML):
 				coord_dist = googleearth_coordinates.getLatLong(coord)
 				self.lon = self.lon - coord_dist[2]
 				self.drawSAT()
+				#self.overlaywindow = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic="", width="425", height="350", mainWindow = self)
+				#self.overlaywindow.tryYoutube()
+					
 				self.xbmcearth_communication.connect("www.youtube.com")
 				result = self.xbmcearth_communication.get_Youtube_html(referer_url,"?v="+self.getListItem(self.getCurrentListPosition()).getProperty('video_id'))
 				if result != False:
@@ -1313,14 +1327,14 @@ class MainClass(xbmcgui.WindowXML):
 					result = simplejson.loads(result)
 					base_v_url = "http://youtube.com/get_video?video_id="+result["video_id"]+"&t="+result["t"]
 					vid_url = self.xbmcearth_communication.stream_Youtube(base_v_url)
-					self.player.stop()
+					self.Player.stop()
 					try:
-						self.player.play(vid_url) 
+						self.Player.play(vid_url,'',1)
 					except:
 						print "old xbmc - starting fullscreen"
-						self.player.play(vid_url)
-						
-					self.getControl(2000).setVisible(1)
+						self.Player.play(vid_url)
+					self.playYoutube = True
+				self.getControl(2000).setVisible(1)
 					
 	
 	def zoom_to_webcams(self):
@@ -1433,8 +1447,13 @@ class MainClass(xbmcgui.WindowXML):
 			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Satelite"), "/xbmc_earth/Satelite_act.html",self)
 
 	def redraw_markers(self):
+		if self.playYoutube == False:
+			for v,x in self.markercontainer.items():
+				x.redraw_Marker()
+	
+	def hide_markers(self):
 		for v,x in self.markercontainer.items():
-			x.redraw_Marker()
+			x.hide_Marker()
 			
 	def pulse_markers(self,pulse):
 		for v,x in self.markercontainer.items():
@@ -1571,7 +1590,9 @@ class marker:
 		else:
 			self.marker_pic.setAnimations([('conditional', 'effect=zoom start=100 end=100 center=auto time=1000 condition=Control.HasFocus(50)')])
 
-		
+	def hide_Marker(self):
+		self.marker_pic.setVisible(0)
+	
 	def redraw_Marker(self):
 		pos = self.get_current_POS()
 		self.marker_pic.setPosition(pos[0],pos[1])
@@ -1815,6 +1836,10 @@ class background_thread(Thread):
 				time.sleep(1)
 				if self.window.getCurrentListPosition() != -1:
 					self.window.pulse_markers(self.window.getListItem(self.window.getCurrentListPosition()).getProperty('id'))
+				if self.window.showLargeOverlay == True:
+					self.window.getControl(2004).setVisible(True) #Show VideoOverlay
+				else:
+					self.window.getControl(2004).setVisible(False) #Hide VideoOverlay
 			except:
 				pass
 				#LOG( LOG_ERROR, self.__class__.__name__, "[%s]", sys.exc_info()[ 1 ] )	
