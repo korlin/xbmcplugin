@@ -245,27 +245,21 @@ class Xbmcearth_communication:
 		import random
 		utmn_rnd =        str(random.randint(1000000000,9999999999))
 		utmhid_rnd = str(random.randint(1000000000,9999999999))
-		#cookie_rand = str(random.randint(10000000,99999999))
-		#random=       str(random.randint(1000000000,2147483647))
-		#today=        str(int(time.mktime(datetime.datetime.now().timetuple())))
-
+		
 		params = "?utmwv=1.3&utmn=$utmn&utmcs=iso-8859-1&utmsr=$utmsr&utmsc=32-bit&utmfl=9.0%20r47&utmul=de&utmje=1&utmdt=$utmdt&utmhn=$utmhn&utmhid=$utmhid&utmr=-&utmp=$utmp&utmac=$utmac"
-		#params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.1%3B%2B__utmb%3D$utmb%3B%2B__utmc%3D$utmc%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
 		params = params + "&utmcc=__utma%3D$utma1.$utma2.$utma3.$utma4.$utma5.$utma6%3B%2B__utmz%3D$utmz1.$utmz2.1.1.utmccn%3D(direct)%7Cutmcsr%3D(direct)%7Cutmcmd%3D(none)%3B%2B"
 		params = Template(params)
 		params = params.substitute(utmn = utmn_rnd, utmsr=str(self.window.getWidth())+'x'+str(self.window.getHeight()), utmdt = pagetitle, utmhn = self.window.set.settings["analytics"]["url"], utmp = page, utmhid = utmhid_rnd, utmac = self.window.set.settings["analytics"]["utmac"],	utma1 = self.window.set.settings["analytics"]["cookie_number"], utma2 = self.window.set.settings["analytics"]["random"], utma3 = self.window.set.settings["analytics"]["first_use"], utma4 = self.window.set.settings["analytics"]["last_use"], utma5 = self.window.set.settings["analytics"]["now"], utma6 = self.window.set.settings["analytics"]["count"], utmb = self.window.set.settings["analytics"]["random"], utmc = self.window.set.settings["analytics"]["random"], utmz1 = self.window.set.settings["analytics"]["cookie_number"], utmz2 = self.window.set.settings["analytics"]["first_use"])		
-		#params = str(params)
-		print params
 		body = ''
 		self.sTargetUrl = "http://www.google-analytics.com/__utm.gif"
 		if self._request("GET",params,header, body)!=True:
 			return False
 		data = self.sData
-		fName = file
+		#fName = file
 		#TEMPFOLDER = "Q:\\temp\\"
-		f = open(TEMPFOLDER + "utm.gif", 'wb')
-		f.write(data)
-		f.close()
+		#f = open(TEMPFOLDER + "utm.gif", 'wb')
+		#f.write(data)
+		#f.close()
 		return self.sData
 		
 		
