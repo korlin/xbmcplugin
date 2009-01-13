@@ -1,8 +1,3 @@
-"""
-helper module for settings
-
-Nuka1195
-"""
 
 import sys
 import os
