@@ -25,7 +25,7 @@ import urllib
 import re
 import time
 import traceback
-from shutil import copytree, rmtree
+from shutil import copytree, rmtree, copy
 
 class Update:
 	""" Update Class: used to update scripts from http://code.google.com/p/xbmc-scripting/ """
@@ -115,9 +115,12 @@ class Update:
 		# make base backup dir
 		try:
 			os.makedirs(self.backup_base_dir)
+			os.makedirs(os.path.join(self.backup_base_dir,resources))
 			print"created dirs=%s" % self.backup_base_dir 
 		except: pass
-		copytree(self.local_dir, self.local_backup_dir)
+		copytree(os.path.join(self.local_dir,'resources'), os.path.join(self.local_backup_dir,'resources'))
+		copy2(self.local_dir+'\\default.py', self.local_backup_dir)
+		copy2(self.local_dir+'\\default.tbn', self.local_backup_dir)
 		print"< Update().makeBackup() done"
 
 	def issueUpdate( self, version ):
@@ -135,7 +138,9 @@ class Update:
 
 	def removeOriginal( self ):
 		print"Update().removeOriginal()"
-		rmtree(self.local_dir,ignore_errors=True)              
+		rmtree(os.path.join(self.local_dir,'resources'),ignore_errors=True) 
+		os.remove(self.local_dir+'\\default.py')
+		os.remove(self.local_dir+'\\default.tbn')
 
 	def backupExists( self ):
 		exists = os.path.exists(self.local_backup_dir)
@@ -197,19 +202,17 @@ class Update:
 		except:
 			return None, None
 
-if __name__ == "__main__":
-	print"update.py running from __main__"
-	if len(sys.argv) != 3:
-		xbmcgui.Dialog().ok("Update error",  "Not enough arguments were passed for update")
-		sys.exit(1)
-
-
-	try:
-		lang_path = os.path.join('Q:' + os.sep,'scripts', sys.argv[1])
-		up = Update(xbmc.Language( lang_path ).getLocalizedString, sys.argv[1])
-		up.removeOriginal()
-		up.downloadVersion(sys.argv[2])
-		xbmc.executebuiltin('XBMC.RunScript(%s)'%(up.local_dir+'\\default.py'))
-	except:
-		print "failed to start script update from backup copy!"
+	if __name__ == "__main__":
+		print"update.py running from __main__"
+		if len(sys.argv) != 3:
+			xbmcgui.Dialog().ok("Update error",  "Not enough arguments were passed for update")
+			sys.exit(1)
+		try:
+			lang_path = os.path.join('Q:' + os.sep,'scripts', sys.argv[1])
+			up = Update(xbmc.Language( lang_path ).getLocalizedString, sys.argv[1])
+			up.removeOriginal()
+			up.downloadVersion(sys.argv[2])
+			xbmc.executebuiltin('XBMC.RunScript(%s)'%(up.local_dir+'\\default.py'))
+		except:
+			print "failed to start script update from backup copy!"
 

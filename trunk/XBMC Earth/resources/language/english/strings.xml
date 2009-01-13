@@ -15,6 +15,8 @@
 	<string id="111">Satelite</string>
 	<string id="112">Map</string>
 	<string id="113">Area</string>
+	<string id="120">GoogleMap	</string>
+	<string id="121">VirtualEarth</string>
 	
 	<!-- More -->
 	<string id="200">Favoriten 1</string>

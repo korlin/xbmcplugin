@@ -370,8 +370,8 @@ class Xbmcearth_communication:
 	def connect (self, targetserver, targetport=80):
 		self.sTargetServer=targetserver
 		self.sTargetPort = targetport
-		self.sTargetServer="inetproxy.global.bdfgroup.net"
-		self.sTargetPort = 8080
+		#self.sTargetServer="inetproxy.global.bdfgroup.net"
+		#self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 	
 	def close(self):
@@ -503,8 +503,8 @@ class get_file(Thread):
 	def connect (self, targetserver):
 		self.sTargetServer=targetserver
 		self.sTargetPort = "80"
-		self.sTargetServer="inetproxy.global.bdfgroup.net"
-		self.sTargetPort = 8080
+		#self.sTargetServer="inetproxy.global.bdfgroup.net"
+		#self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 		
 class SRH(urllib2.HTTPRedirectHandler): 

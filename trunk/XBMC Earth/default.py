@@ -13,7 +13,7 @@ except: Emulating = False
 # Script constants
 __scriptname__ = "XBMC Earth"
 __author__ = "MrLight"
-__version__ = "0.41"
+__version__ = "0.42"
 __date__ = '09-01-2009'
 xbmc.output(__scriptname__ + " Version: " + __version__ + " Date: " + __date__)
 
@@ -1556,11 +1556,7 @@ class MainClass(xbmcgui.WindowXML):
 		
 	def makeRoute(self, LineString ):
 		text = 'test-string'
-		fnt = BASE_RESOURCE_PATH + '\\skins\\Default\\media\\1.ttf'
-		fnt_sz = 80
 		fmt='PNG'
-		font = ImageFont.truetype(fnt,fnt_sz)
-		dim = font.getsize(text)
 		im = Image.new('RGBA', (self.map_size_x*self.pic_size,self.map_size_y*self.pic_size), (0,0,0,0))
 		d = ImageDraw.Draw(im)
 		x, y = im.size
