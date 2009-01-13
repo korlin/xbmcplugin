@@ -97,9 +97,9 @@
 				<disabledcolor>60ffffff</disabledcolor>
 				<aligny>center</aligny>
 				<onleft>113</onleft>
-				<onright>131</onright>
+				<onright>121</onright>
 				<onup>2</onup>
-				<ondown>100</ondown>
+				<ondown>116</ondown>
 			</control>
 			<control type="radiobutton" id="121">
 				<description>VirtualEarth</description>
@@ -119,10 +119,10 @@
 				<textcolor>FFFFFFFF</textcolor>
 				<disabledcolor>60ffffff</disabledcolor>
 				<aligny>center</aligny>
-				<onleft>130</onleft>
+				<onleft>120</onleft>
 				<onright>110</onright>
 				<onup>2</onup>
-				<ondown>100</ondown>
+				<ondown>118</ondown>
 			</control>
 			<control type="radiobutton" id="110">
 				<description>Satellite Viev</description>
@@ -142,7 +142,7 @@
 				<textcolor>FFFFFFFF</textcolor>
 				<disabledcolor>60ffffff</disabledcolor>
 				<aligny>center</aligny>
-				<onleft>131</onleft>
+				<onleft>121</onleft>
 				<onright>111</onright>
 				<onup>2</onup>
 				<ondown>100</ondown>
@@ -316,7 +316,7 @@
 					<aligny>center</aligny>
 					<onleft>114</onleft>
 					<onright>115</onright>
-					<onup>2</onup>
+					<onup>120</onup>
 					<ondown>117</ondown>
 				</control>
 				<control type="button" id="117">
@@ -353,7 +353,7 @@
 				<aligny>center</aligny>
 				<onleft>116</onleft>
 				<onright>110</onright>
-				<onup>2</onup>
+				<onup>121</onup>
 				<ondown>119</ondown>
 			</control>
 			<control type="button" id="119">
