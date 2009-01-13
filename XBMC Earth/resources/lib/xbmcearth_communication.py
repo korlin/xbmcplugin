@@ -32,8 +32,6 @@ class Xbmcearth_communication:
 		f.close()
 		return self.sData
 
-	
-	#http://maps.google.com//maps?f=d&source=s_d&saddr=Offenburg&daddr=Schutterwald&hl=de&geocode=&mra=ls&output=kml
 	def get_Route(self, url, saddr, daddr):
 		try:
 			os.mkdir(TEMPFOLDER+"Route")
@@ -155,15 +153,26 @@ class Xbmcearth_communication:
 		return self.sData
 		
 	def get_Weather(self, url, param):
-		header = {
-			"Host":"www.google.com",
-			"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
-			"Accept":"*/*",
-			"Accept-Language":"de-de,de",
-			"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
-			"Keep-Alive":"300",
-			"Proxy-Connection":"keep-alive",
-			"Referer": url} 
+		if xbmc.getLanguage() == 'German':
+			header = {
+				"Host":"www.google.com",
+				"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+				"Accept":"*/*",
+				"Accept-Language":"de-de,de",
+				"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+				"Keep-Alive":"300",
+				"Proxy-Connection":"keep-alive",
+				"Referer": url} 
+		else:
+			header = {
+				"Host":"www.google.com",
+				"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.11) Gecko/20071127 Firefox/2.0.0.11",
+				"Accept":"*/*",
+				"Accept-Language":"en-en,en",
+				"Accept-Charset":"ISO-8859-1,utf-8;q=0.7,*;q=0.7",
+				"Keep-Alive":"300",
+				"Proxy-Connection":"keep-alive",
+				"Referer": url} 
 		params = param
 		body = ''
 		self.sTargetUrl = "http://www.google.com/ig/api"
@@ -201,8 +210,8 @@ class Xbmcearth_communication:
 		
 	def stream_Youtube(self, v_url):
 		request = urllib2.Request(v_url) 
-		#proxy=[urllib2.ProxyHandler({'http':'inetproxy.global.bdfgroup.net:8080'})]
-		#opener=urllib2.build_opener(proxy)
+		proxy=[urllib2.ProxyHandler({'http':'inetproxy.global.bdfgroup.net:8080'})]
+		opener=urllib2.build_opener(proxy)
 		opener = urllib2.build_opener(SRH) 
 		f = opener.open(request) 
 		vid_url = f.url 
@@ -232,15 +241,46 @@ class Xbmcearth_communication:
 
 	def get_Google_Analytics(self, url, pagetitle, page, window):
 		self.window=window
-		header = {
-			"Host":"www.google-analytics.com",
-			"User-Agent":"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022)",
-			"Accept":"*/*",
-			"UA-CPU": "x86",
-			"Accept-Language":"de",
-			"Connection": "Keep-Alive",
-			"NovINet": "v1.0",
-			"Referer": "http://www.neomy.de/"} 
+		if xbmc.getCondVisibility('system.platform.windows'):
+			header = {
+				"Host":"www.google-analytics.com",
+				"User-Agent":"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
+				"Accept":"*/*",
+				"UA-CPU": "x86",
+				"Accept-Language":"de",
+				"Connection": "Keep-Alive",
+				"NovINet": "v1.0",
+				"Referer": "http://www.xbmcmaps.de/"} 
+		elif xbmc.getCondVisibility('system.platform.linux'):
+			header = {
+				"Host":"www.google-analytics.com",
+				"User-Agent":"Mozilla/5.0 (X11; U; Linux i586; en-US; rv:1.7.3) Gecko/20040924 Epiphany/1.4.4 (Ubuntu)",
+				"Accept":"*/*",
+				"UA-CPU": "x86",
+				"Accept-Language":"de",
+				"Connection": "Keep-Alive",
+				"NovINet": "v1.0",
+				"Referer": "http://www.xbmcmaps.de/"}
+		elif xbmc.getCondVisibility('system.platform.xbox'):
+			header = {
+				"Host":"www.google-analytics.com",
+				"User-Agent":"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)",
+				"Accept":"*/*",
+				"UA-CPU": "x86",
+				"Accept-Language":"de",
+				"Connection": "Keep-Alive",
+				"NovINet": "v1.0",
+				"Referer": "http://www.xbmcmaps.de/"}	
+		else:
+			header = {
+				"Host":"www.google-analytics.com",
+				"User-Agent":"Mozilla/5.0 (Macintosh; PPC Mac OS X)",
+				"Accept":"*/*",
+				"UA-CPU": "x86",
+				"Accept-Language":"de",
+				"Connection": "Keep-Alive",
+				"NovINet": "v1.0",
+				"Referer": "http://www.xbmcmaps.de/"}	
 		self.connect("www.google-analytics.com")
 		import random
 		utmn_rnd =        str(random.randint(1000000000,9999999999))
@@ -255,11 +295,6 @@ class Xbmcearth_communication:
 		if self._request("GET",params,header, body)!=True:
 			return False
 		data = self.sData
-		#fName = file
-		#TEMPFOLDER = "Q:\\temp\\"
-		#f = open(TEMPFOLDER + "utm.gif", 'wb')
-		#f.write(data)
-		#f.close()
 		return self.sData
 		
 		
@@ -335,8 +370,8 @@ class Xbmcearth_communication:
 	def connect (self, targetserver, targetport=80):
 		self.sTargetServer=targetserver
 		self.sTargetPort = targetport
-		#self.sTargetServer="inetproxy.global.bdfgroup.net"
-		#self.sTargetPort = 8080
+		self.sTargetServer="inetproxy.global.bdfgroup.net"
+		self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 	
 	def close(self):
@@ -468,8 +503,8 @@ class get_file(Thread):
 	def connect (self, targetserver):
 		self.sTargetServer=targetserver
 		self.sTargetPort = "80"
-		#self.sTargetServer="inetproxy.global.bdfgroup.net"
-		#self.sTargetPort = 8080
+		self.sTargetServer="inetproxy.global.bdfgroup.net"
+		self.sTargetPort = 8080
 		self.connection = httplib.HTTPConnection(self.sTargetServer, self.sTargetPort)	
 		
 class SRH(urllib2.HTTPRedirectHandler): 

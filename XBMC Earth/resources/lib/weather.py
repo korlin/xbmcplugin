@@ -79,11 +79,17 @@ class get_weather(Thread):
 					sub_nodes = node.getElementsByTagName("low")
 					for sub_node in sub_nodes:
 						resultcontainer["forecast_conditions"][index]["low"] = sub_node.getAttribute("data").encode('latin-1', 'ignore')
-						self.window.getControl(965+(index*10)).setLabel("min: " +str(resultcontainer["forecast_conditions"][index]["low"]) + "°C")
+						if xbmc.getLanguage() == 'German':
+							self.window.getControl(965+(index*10)).setLabel("min: " +str(resultcontainer["forecast_conditions"][index]["low"]) + "°C")
+						else:
+							self.window.getControl(965+(index*10)).setLabel("min: " +str(resultcontainer["forecast_conditions"][index]["low"]) + "°F")
 					sub_nodes = node.getElementsByTagName("high")
 					for sub_node in sub_nodes:	
 						resultcontainer["forecast_conditions"][index]["high"] = sub_node.getAttribute("data").encode('latin-1', 'ignore')
-						self.window.getControl(964+(index*10)).setLabel("max: "+str(resultcontainer["forecast_conditions"][index]["high"]) + "°C")
+						if xbmc.getLanguage() == 'German':
+							self.window.getControl(964+(index*10)).setLabel("max: "+str(resultcontainer["forecast_conditions"][index]["high"]) + "°C")
+						else:
+							self.window.getControl(964+(index*10)).setLabel("max: "+str(resultcontainer["forecast_conditions"][index]["high"]) + "°F")
 					sub_nodes = node.getElementsByTagName("icon")
 					for sub_node in sub_nodes:	
 						resultcontainer["forecast_conditions"][index]["icon"] = sub_node.getAttribute("data").encode('latin-1', 'ignore')

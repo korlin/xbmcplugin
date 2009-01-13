@@ -29,6 +29,7 @@ from threading import Thread
 
 from googleearth_coordinates import  Googleearth_Coordinates
 from xbmcearth_communication import *
+from virtualearth_coordinates import *
 from pic import Pic_GUI
 import update 
 import settings
@@ -121,9 +122,6 @@ class MainClass(xbmcgui.WindowXML):
 			xbmcgui.Window.__init__(self)
 		self.set.read_settings()
 		self.init_startup_values()
-		#self.settings = {}
-		#self._initSettings(forceReset=False)
-		# check for script update
 
 		print os.name
 		#Clear cached Files
@@ -222,7 +220,7 @@ class MainClass(xbmcgui.WindowXML):
 		
 	def onInit(self):
 		if self.showLargeOverlay == False:
-			self.getControl(2004).setVisible(False) #Show VideoOverlay
+			self.getControl(2004).setVisible(False) #Hide VideoOverlay
 		self.getControl(2001).setVisible(0)
 		self.getControl(2003).setVisible(False)
 		
@@ -231,7 +229,7 @@ class MainClass(xbmcgui.WindowXML):
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
 				pass
-		for button_id in range( 109, 114 ):
+		for button_id in range( 109, 122 ):
 			try:
 				self.getControl( button_id ).setLabel( __language__( button_id ) )
 			except:
@@ -239,6 +237,7 @@ class MainClass(xbmcgui.WindowXML):
 		#Start Backgroundthread
 		self.background = background_thread(self)
 		self.background.start()
+		self.updateRadioState()
 		self.drawSAT()
 		pass
 		
@@ -273,17 +272,13 @@ class MainClass(xbmcgui.WindowXML):
 			con = context.GUI( "script-%s-DialogContextMenu.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(),  "Default", 0,mainWindow = self)
 			del con
 		elif controlID == 110:
-			self.hybrid = 1
-			self.drawSAT()
+			self.show_GHYB()
 		elif controlID == 111:
-			self.hybrid = 0
-			self.drawSAT()
+			self.show_GSAT()
 		elif controlID == 112:
-			self.hybrid = 2
-			self.drawHYBRID()
+			self.show_GMAP()
 		elif controlID == 113:
-			self.hybrid = 3
-			self.drawHYBRID()
+			self.show_GAREA()
 		elif controlID == 114:
 			self.moveLEFT()
 		elif controlID == 115:
@@ -296,6 +291,12 @@ class MainClass(xbmcgui.WindowXML):
 			self.zoomIN()
 		elif controlID == 119:
 			self.zoomOUT()
+		
+		elif controlID == 120:
+			self.switch_MS_Google()
+		elif controlID == 121:
+			self.switch_MS_Google()
+		
 		elif ( 50 <= controlID <= 59 ):
 			self.zoom_to_select(int(self.getCurrentListPosition()))
 
@@ -326,7 +327,7 @@ class MainClass(xbmcgui.WindowXML):
 					self.goodbye()
 		#map_move active
 		if self.map_move == 1:
-			if action.getButtonCode() == 61467 or action.getButtonCode() == REMOTE_BACK or action.getButtonCode() == pad_button_back:
+			if action.getButtonCode() == 61467 or action.getButtonCode() == REMOTE_BACK or action.getButtonCode() == pad_button_back or action in ACTION_CANCEL_DIALOG:
 				self.map_mov()
 				self.getControl(2000).setVisible(1)
 			if action.getButtonCode() == KEYBOARD_UP or action.getButtonCode() == REMOTE_UP or action.getButtonCode() == pad_button_dpad_up:
@@ -354,38 +355,111 @@ class MainClass(xbmcgui.WindowXML):
 		if action.getButtonCode() == KEYBOARD_INSERT or action.getButtonCode() == REMOTE_INFO or action.getButtonCode() == pad_button_white:
 			if self.hybrid == 1:
 				self.hybrid = 2
-				map_center_x = int(self.map_size_x / 2)
-				map_center_y = int(self.map_size_y / 2)
-				for x in range(self.map_size_x):
-					for y in range(self.map_size_y):
-						self.mapBlocks[x][y].setVisible(1)
-						self.satBlocks[x][y].setVisible(0)
+				self.show_GMAP()
 			elif self.hybrid ==2:
 				self.hybrid = 3
-				map_center_x = int(self.map_size_x / 2)
-				map_center_y = int(self.map_size_y / 2)
-				for x in range(self.map_size_x):
-					for y in range(self.map_size_y):
-						self.mapBlocks[x][y].setVisible(1)
-						self.satBlocks[x][y].setVisible(0)
+				self.show_GAREA()
 			elif self.hybrid ==3:
+				self.hybrid = 4
+				self.show_GSAT()
+			elif self.hybrid ==4:
+				self.hybrid = 5
+				self.show_GHYB()
+			elif self.hybrid ==5:
+				self.hybrid = 6
+				self.show_GMAP()
+			elif self.hybrid ==6:
 				self.hybrid = 0
-				map_center_x = int(self.map_size_x / 2)
-				map_center_y = int(self.map_size_y / 2)
-				for x in range(self.map_size_x):
-					for y in range(self.map_size_y):
-						self.mapBlocks[x][y].setVisible(0)
-						self.satBlocks[x][y].setVisible(1)
+				self.show_GSAT()
 			else:
 				self.hybrid = 1
-				map_center_x = int(self.map_size_x / 2)
-				map_center_y = int(self.map_size_y / 2)
-				for x in range(self.map_size_x):
-					for y in range(self.map_size_y):
-						self.mapBlocks[x][y].setVisible(1)
-						self.satBlocks[x][y].setVisible(1)
-			self.drawHYBRID()
+				self.show_GHYB()
+			#self.drawSAT()
+	
+	def updateRadioState(self):
+		self.getControl(110).setSelected(False)
+		self.getControl(111).setSelected(False)
+		self.getControl(112).setSelected(False)
+		self.getControl(113).setSelected(False)
+		self.getControl(120).setSelected(False)
+		self.getControl(121).setSelected(False)
+		if self.hybrid == 0:
+			self.getControl(111).setSelected(True)
+			self.getControl(120).setSelected(True)
+		elif self.hybrid == 1:
+			self.getControl(110).setSelected(True)
+			self.getControl(120).setSelected(True)
+		elif self.hybrid == 2:
+			self.getControl(112).setSelected(True)
+			self.getControl(120).setSelected(True)
+		elif self.hybrid == 3:
+			self.getControl(113).setSelected(True)
+			self.getControl(120).setSelected(True)
+		elif self.hybrid == 4:
+			self.getControl(111).setSelected(True)
+			self.getControl(121).setSelected(True)
+		elif self.hybrid == 5:
+			self.getControl(110).setSelected(True)
+			self.getControl(121).setSelected(True)
+		elif self.hybrid == 6:
+			self.getControl(112).setSelected(True)
+			self.getControl(121).setSelected(True)
+			
+	def show_GSAT(self):
+		if self.hybrid <= 3:
+			self.hybrid = 0
+			self.select_Google()
+		else:
+			self.hybrid = 4
+			self.select_MS()
+		self.updateRadioState()
+		self.drawSAT()
+	
+	def show_GHYB(self):
+		if self.hybrid <= 3:
+			self.hybrid = 1
+			self.select_Google()
+		else:
+			self.hybrid = 5
+			self.select_MS()
+		self.updateRadioState()
+		self.drawSAT()
+	
+	def show_GMAP(self):
+		if self.hybrid <= 3:
+			self.hybrid = 2
+			self.select_Google()
+		else:
+			self.hybrid = 6
+			self.select_MS()
+		self.updateRadioState()
+		self.drawSAT()
 		
+	def show_GAREA(self):
+		if self.hybrid <= 3:
+			self.hybrid = 3
+			self.select_Google()
+		else:
+			pass
+		self.updateRadioState()
+		self.drawSAT()
+		
+	def select_MS(self):
+		self.getControl(120).setSelected(False)
+		self.getControl(121).setSelected(True)
+
+	def select_Google(self):
+		self.getControl(120).setSelected(True)
+		self.getControl(121).setSelected(False)
+
+	def switch_MS_Google(self):
+		if self.hybrid < 3:
+			self.hybrid += 4
+		elif self.hybrid > 3:
+			self.hybrid -= 4
+		self.updateRadioState()
+		self.drawSAT()
+	
 	def moveUP(self):
 		coord_dist =[]
 		coord=Googleearth_Coordinates().getTileRef(self.lon, self.lat, self.zoom)
@@ -1430,21 +1504,31 @@ class MainClass(xbmcgui.WindowXML):
 		map = draw_map(self,self.mapBlocks)
 		map.start()
 		self.redraw_markers()
+		virtualEarth = draw_virtualearth(self,self.satBlocks)
+		virtualEarth.start()
 		sat.join()
 		map.join()
+		virtualEarth.join()
 		if self.routecontainer['enable'] == 1:
 			self.makeRoute(self.routecontainer['linestring'])
 			self.route_pic.setVisible(True)
 		else:
 			self.route_pic.setVisible(False)
 		if self.hybrid == 1:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Hybrid"), "/xbmc_earth/Hybrid_act.html",self)
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Google Hybrid"), "/xbmc_earth/browse/Google/Hybrid_act.html",self)
 		elif self.hybrid == 2:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Map"), "/xbmc_earth/Map_act.html",self)
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Google Map"), "/xbmc_earth/browse/Google/Map_act.html",self)
 		elif self.hybrid == 3:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Area"), "/xbmc_earth/Area_act.html",self)
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Google Area"), "/xbmc_earth/browse/Google/Area_act.html",self)
 		elif self.hybrid == 0:
-			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Satelite"), "/xbmc_earth/Satelite_act.html",self)
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("Google Satelite"), "/xbmc_earth/browse/Google/Satelite_act.html",self)
+		elif self.hybrid == 4:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("VirtualEarth Satelite"), "/xbmc_earth/browse/VirtualEarth/Satelite_act.html",self)
+		elif self.hybrid == 5:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("VirtualEarth Hybrid"), "/xbmc_earth/browse/VirtualEarth/Hybrid_act.html",self)
+		elif self.hybrid == 6:
+			self.xbmcearth_communication.get_Google_Analytics( referer_url,  urllib.quote("VirtualEarth Map"), "/xbmc_earth/browse/VirtualEarth/Map_act.html",self)
+		
 
 	def redraw_markers(self):
 		if self.playYoutube == False:
@@ -1786,6 +1870,55 @@ class draw_map(Thread):
 				for x in range(self.window.map_size_x):
 					for y in range(self.window.map_size_y):
 						self.mapBlocks[x][y].setVisible(False)
+			except: pass
+			
+class draw_virtualearth(Thread):
+	xbmcearth_communication = Xbmcearth_communication()
+	def __init__ (self, window, satBlocks):
+		Thread.__init__(self)
+		self.window = window
+		self.satBlocks = satBlocks
+
+
+	def run(self):
+		if self.window.hybrid >=4:
+			virtualEarthTileSystem = VirtualEarthTileSystem()
+			Lon = self.window.lon
+			Lat = self.window.lat
+			Zoom = 18 - self.window.zoom
+			coord = virtualEarthTileSystem.LatLongToPixelXY(Lat, Lon, Zoom)
+			coord[0] = int(coord[0]) - 256
+			coord[1] = int(coord[1]) - 256
+			
+			satlist = []
+			for x in range(self.window.map_size_x):
+				for y in range(self.window.map_size_y):
+					pixelx = coord[0] + 256*x
+					pixely = coord[1] + 256*y
+					tile = virtualEarthTileSystem.PixelXYToTileXY(pixelx,pixely)
+					Key= virtualEarthTileSystem.TileXYToQuadKey( tile[0], tile[1], Zoom)
+					if self.window.hybrid ==4: #VirtualEarth Sat
+						current = get_file("http://t2.tiles.virtualearth.net/tiles/a"+Key+".jpeg?g=234&mkt=de-de", "MSHSat\\z"+str(Zoom)+"\\"+Key+".jpg", referer_url,self.satBlocks[x][y])
+					elif self.window.hybrid ==5: #VirtualEarth Hybrid
+						current = get_file("http://t2.tiles.virtualearth.net/tiles/h"+Key+".jpeg?g=234&mkt=de-de", "MSHybrid\\z"+str(Zoom)+"\\"+Key+".jpg", referer_url,self.satBlocks[x][y])
+					elif self.window.hybrid ==6: #VirtualEarth Map
+						current = get_file("http://t2.tiles.virtualearth.net/tiles/r"+Key+".png?g=234&mkt=de-de", "MSMap\\z"+str(Zoom)+"\\"+Key+".png", referer_url,self.satBlocks[x][y])
+					
+					satlist.append(current)
+					thread_starter=0
+					while thread_starter<10:
+						try:
+							current.start()
+							thread_starter=100
+						except:
+							time.sleep(1)
+							thread_starter +=1
+					#current.join(100)
+		else:
+			try:
+				for x in range(self.window.map_size_x):
+					for y in range(self.window.map_size_y):
+						self.satBlocks[x][y].setVisible(False)
 			except: pass
 
 

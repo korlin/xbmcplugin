@@ -4,6 +4,12 @@
 	<animation effect="fade" time="200">WindowOpen</animation>
 	<animation effect="fade" time="200">WindowClose</animation>
     <controls>
+		<control type="group" id="500">
+			<posx>50</posx>
+			<posy>100</posy>	
+			<animation effect="rotate" end="360" center="50,120" time="5000">WindowOpen</animation>
+			
+		</control>
 		<control type="label" id="2000">
 			<description>heading label</description>
 			<posx>-10</posx>
@@ -66,95 +72,152 @@
 			<animation effect="slide" time="500" start="0,-88" end="0,0" acceleration="-1.1">Visible</animation>
 			<animation effect="slide" time="500" start="0,0" end="0,-88" acceleration="1.1">Hidden</animation>  
 		</control>
-		<control type="button" id="110">
-			<description>Satellite Viev</description>
-			<posx>130</posx>
+		<control type="group" id="9000">
+			<posx>129</posx>
 			<posy>68</posy>
-			<width>50</width>
-			<height>20</height>
-			<texturefocus>amt-button-focus.png</texturefocus>
-			<texturenofocus>amt-button-nofocus.png</texturenofocus>
-			<font>font10</font>
-			<textcolor>FFFFFFFF</textcolor>
-			<disabledcolor>60ffffff</disabledcolor>
-			<textoffsetx>17</textoffsetx>
-			<aligny>center</aligny>
-			<onleft>113</onleft>
-			<onright>111</onright>
-			<onup>2</onup>
-			<ondown>100</ondown>
-			<onclick>-</onclick>
 			<visible>Control.IsVisible(2000)</visible>
 			<animation effect="slide" time="500" start="0,-68" end="0,0" acceleration="-1.1">Visible</animation>
-			<animation effect="slide" time="500" start="0,0" end="0,-68" acceleration="1.1">Hidden</animation> 
+			<animation effect="slide" time="500" start="0,0" end="0,-68" acceleration="1.1">Hidden</animation>
+			<control type="radiobutton" id="120">
+				<description>Google</description>
+				<posx>-120</posx>
+				<posy>0</posy>
+				<width>60</width>
+				<height>20</height>
+				<radioposx>-120</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>60</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>113</onleft>
+				<onright>131</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
+			<control type="radiobutton" id="121">
+				<description>VirtualEarth</description>
+				<posx>-60</posx>
+				<posy>0</posy>
+				<width>60</width>
+				<height>20</height>
+				<radioposx>-60</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>60</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>130</onleft>
+				<onright>110</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
+			<control type="radiobutton" id="110">
+				<description>Satellite Viev</description>
+				<posx>1</posx>
+				<posy>0</posy>
+				<width>50</width>
+				<height>20</height>
+				<radioposx>1</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>50</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>131</onleft>
+				<onright>111</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
+			<control type="radiobutton" id="111">
+				<description>Hybrid Viev</description>
+				<posx>51</posx>
+				<posy>0</posy>
+				<width>50</width>
+				<height>20</height>
+				<radioposx>51</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>50</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>110</onleft>
+				<onright>112</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
+			<control type="radiobutton" id="112">
+				<description>Map Viev</description>
+				<posx>101</posx>
+				<posy>0</posy>
+				<width>50</width>
+				<height>20</height>
+				<radioposx>101</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>50</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>111</onleft>
+				<onright>113</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
+			<control type="radiobutton" id="113">
+				<description>Area Viev</description>
+				<posx>151</posx>
+				<posy>0</posy>
+				<width>50</width>
+				<height>20</height>
+				<radioposx>151</radioposx>
+				<radioposy>0</radioposy>
+				<radiowidth>50</radiowidth>
+				<radioheight>20</radioheight>
+				<texturefocus>amt-button-focus.png</texturefocus>
+				<texturenofocus>amt-button-nofocus.png</texturenofocus>
+				<textureradiofocus>amt-radiobutton-focus.png</textureradiofocus>
+				<textureradionofocus>amt-radiobutton-nofocus.png</textureradionofocus>
+				<font>font10</font>
+				<textcolor>FFFFFFFF</textcolor>
+				<disabledcolor>60ffffff</disabledcolor>
+				<aligny>center</aligny>
+				<onleft>112</onleft>
+				<onright>110</onright>
+				<onup>2</onup>
+				<ondown>100</ondown>
+			</control>
 		</control>
-		<control type="button" id="111">
-			<description>Hybrid Viev</description>
-			<posx>180</posx>
-			<posy>68</posy>
-			<width>50</width>
-			<height>20</height>
-			<texturefocus>amt-button-focus.png</texturefocus>
-			<texturenofocus>amt-button-nofocus.png</texturenofocus>
-			<font>font10</font>
-			<textcolor>FFFFFFFF</textcolor>
-			<disabledcolor>60ffffff</disabledcolor>
-			<textoffsetx>17</textoffsetx>
-			<aligny>center</aligny>
-			<onleft>110</onleft>
-			<onright>112</onright>
-			<onup>2</onup>
-			<ondown>100</ondown>
-			<onclick>-</onclick>
-			<visible>Control.IsVisible(2000)</visible>
-			<animation effect="slide" time="500" start="0,-68" end="0,0" acceleration="-1.1">Visible</animation>
-			<animation effect="slide" time="500" start="0,0" end="0,-68" acceleration="1.1">Hidden</animation> 
-		</control>
-		<control type="button" id="112">
-			<description>Map Viev</description>
-			<posx>230</posx>
-			<posy>68</posy>
-			<width>50</width>
-			<height>20</height>
-			<texturefocus>amt-button-focus.png</texturefocus>
-			<texturenofocus>amt-button-nofocus.png</texturenofocus>
-			<font>font10</font>
-			<textcolor>FFFFFFFF</textcolor>
-			<disabledcolor>60ffffff</disabledcolor>
-			<textoffsetx>17</textoffsetx>
-			<aligny>center</aligny>
-			<onleft>111</onleft>
-			<onright>113</onright>
-			<onup>2</onup>
-			<ondown>100</ondown>
-			<onclick>-</onclick>
-			<visible>Control.IsVisible(2000)</visible>
-			<animation effect="slide" time="500" start="0,-68" end="0,0" acceleration="-1.1">Visible</animation>
-			<animation effect="slide" time="500" start="0,0" end="0,-68" acceleration="1.1">Hidden</animation> 
-		</control>
-		<control type="button" id="113">
-			<description>Area Viev</description>
-			<posx>280</posx>
-			<posy>68</posy>
-			<width>50</width>
-			<height>20</height>
-			<texturefocus>amt-button-focus.png</texturefocus>
-			<texturenofocus>amt-button-nofocus.png</texturenofocus>
-			<font>font10</font>
-			<textcolor>FFFFFFFF</textcolor>
-			<disabledcolor>60ffffff</disabledcolor>
-			<textoffsetx>17</textoffsetx>
-			<aligny>center</aligny>
-			<onleft>112</onleft>
-			<onright>110</onright>
-			<onup>2</onup>
-			<ondown>100</ondown>
-			<onclick>-</onclick>
-			<visible>Control.IsVisible(2000)</visible>
-			<animation effect="slide" time="500" start="0,-68" end="0,0" acceleration="-1.1">Visible</animation>
-			<animation effect="slide" time="500" start="0,0" end="0,-68" acceleration="1.1">Hidden</animation> 
-		</control>
-
+		
 		<control type="label" id="200">
 			<description>heading label</description>
 			<posx>-100</posx>
@@ -198,82 +261,82 @@
 			<animation effect="slide" time="500" start="0,0" end="-300,0" acceleration="1.1">Hidden</animation>            
 			<animation effect="slide" time="300" start="-300,0" end="0,0" acceleration="-1.1">WindowOpen</animation>
 			<animation effect="slide" time="200" start="0,0" end="-300,0" acceleration="1.1">WindowClose</animation>
-			
-			<control type="button" id="114">
-				<description>NavLeft</description>
-				<posx>20</posx>
-				<posy>110</posy>
-				<width>20</width>
-				<height>20</height>
-				<texturefocus>ear-nav-left-focus.png</texturefocus>
-				<texturenofocus>ear-nav-left-nofocus.png</texturenofocus>
-				<font>font10</font>
-				<textcolor>FFFFFFFF</textcolor>
-				<disabledcolor>60ffffff</disabledcolor>
-				<textoffsetx>17</textoffsetx>
-				<aligny>center</aligny>
-				<onleft>2</onleft>
-				<onright>115</onright>
-				<onup>116</onup>
-				<ondown>117</ondown>
-				<onclick>-</onclick>
-			</control>
-			<control type="button" id="115">
-				<description>NavRight</description>
-				<posx>60</posx>
-				<posy>110</posy>
-				<width>20</width>
-				<height>20</height>
-				<texturefocus>ear-nav-right-focus.png</texturefocus>
-				<texturenofocus>ear-nav-right-nofocus.png</texturenofocus>
-				<font>font10</font>
-				<textcolor>FFFFFFFF</textcolor>
-				<disabledcolor>60ffffff</disabledcolor>
-				<textoffsetx>17</textoffsetx>
-				<aligny>center</aligny>
-				<onleft>114</onleft>
-				<onright>118</onright>
-				<onup>116</onup>
-				<ondown>117</ondown>
-				<onclick>-</onclick>
-			</control>
-			<control type="button" id="116">
-				<description>NavUp</description>
-				<posx>40</posx>
-				<posy>90</posy>
-				<width>20</width>
-				<height>20</height>
-				<texturefocus>ear-nav-up-focus.png</texturefocus>
-				<texturenofocus>ear-nav-up-nofocus.png</texturenofocus>
-				<font>font10</font>
-				<textcolor>FFFFFFFF</textcolor>
-				<disabledcolor>60ffffff</disabledcolor>
-				<textoffsetx>17</textoffsetx>
-				<aligny>center</aligny>
-				<onleft>114</onleft>
-				<onright>115</onright>
-				<onup>2</onup>
-				<ondown>117</ondown>
-				<onclick>-</onclick>
-			</control>
-			<control type="button" id="117">
-				<description>NavDown</description>
-				<posx>40</posx>
-				<posy>130</posy>
-				<width>20</width>
-				<height>20</height>
-				<texturefocus>ear-nav-down-focus.png</texturefocus>
-				<texturenofocus>ear-nav-down-nofocus.png</texturenofocus>
-				<font>font10</font>
-				<textcolor>FFFFFFFF</textcolor>
-				<disabledcolor>60ffffff</disabledcolor>
-				<textoffsetx>17</textoffsetx>
-				<aligny>center</aligny>
-				<onleft>114</onleft>
-				<onright>115</onright>
-				<onup>116</onup>
-				<ondown>100</ondown>
-				<onclick>-</onclick>
+			<control type="group" id="9001">
+				<posx>50</posx>
+				<posy>100</posy>	
+				<!--<animation effect="rotate" end="360" center="50,120" time="5000">WindowOpen</animation>-->
+				<control type="button" id="114">
+					<description>NavLeft</description>
+					<posx>-30</posx>
+					<posy>10</posy>
+					<width>20</width>
+					<height>20</height>
+					<texturefocus>ear-nav-left-focus.png</texturefocus>
+					<texturenofocus>ear-nav-left-nofocus.png</texturenofocus>
+					<font>font10</font>
+					<textcolor>FFFFFFFF</textcolor>
+					<disabledcolor>60ffffff</disabledcolor>
+					<textoffsetx>17</textoffsetx>
+					<aligny>center</aligny>
+					<onleft>2</onleft>
+					<onright>115</onright>
+					<onup>116</onup>
+					<ondown>117</ondown>
+				</control>
+				<control type="button" id="115">
+					<description>NavRight</description>
+					<posx>10</posx>
+					<posy>10</posy>
+					<width>20</width>
+					<height>20</height>
+					<texturefocus>ear-nav-right-focus.png</texturefocus>
+					<texturenofocus>ear-nav-right-nofocus.png</texturenofocus>
+					<font>font10</font>
+					<textcolor>FFFFFFFF</textcolor>
+					<disabledcolor>60ffffff</disabledcolor>
+					<textoffsetx>17</textoffsetx>
+					<aligny>center</aligny>
+					<onleft>114</onleft>
+					<onright>118</onright>
+					<onup>116</onup>
+					<ondown>117</ondown>
+				</control>
+				<control type="button" id="116">
+					<description>NavUp</description>
+					<posx>-10</posx>
+					<posy>-10</posy>
+					<width>20</width>
+					<height>20</height>
+					<texturefocus>ear-nav-up-focus.png</texturefocus>
+					<texturenofocus>ear-nav-up-nofocus.png</texturenofocus>
+					<font>font10</font>
+					<textcolor>FFFFFFFF</textcolor>
+					<disabledcolor>60ffffff</disabledcolor>
+					<textoffsetx>17</textoffsetx>
+					<aligny>center</aligny>
+					<onleft>114</onleft>
+					<onright>115</onright>
+					<onup>2</onup>
+					<ondown>117</ondown>
+				</control>
+				<control type="button" id="117">
+					<description>NavDown</description>
+					<posx>-10</posx>
+					<posy>30</posy>
+					<width>20</width>
+					<height>20</height>
+					<texturefocus>ear-nav-down-focus.png</texturefocus>
+					<texturenofocus>ear-nav-down-nofocus.png</texturenofocus>
+					<font>font10</font>
+					<textcolor>FFFFFFFF</textcolor>
+					<disabledcolor>60ffffff</disabledcolor>
+					<textoffsetx>17</textoffsetx>
+					<aligny>center</aligny>
+					<onleft>114</onleft>
+					<onright>115</onright>
+					<onup>116</onup>
+					<ondown>100</ondown>
+				</control>
 			</control>
 			<control type="button" id="118">
 				<description>Zoom IN</description>
@@ -292,7 +355,6 @@
 				<onright>110</onright>
 				<onup>2</onup>
 				<ondown>119</ondown>
-				<onclick>-</onclick>
 			</control>
 			<control type="button" id="119">
 				<description>Zoom Out</description>
@@ -311,7 +373,6 @@
 				<onright>110</onright>
 				<onup>118</onup>
 				<ondown>100</ondown>
-				<onclick>-</onclick>
 			</control>
 			<!--<control type="button" id="2">
 				<description>View As Icons button</description>
@@ -351,7 +412,6 @@
 				<onright>50</onright>
 				<onup>117</onup>
 				<ondown>101</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="101">
@@ -371,7 +431,6 @@
 				<onright>50</onright>
 				<onup>100</onup>
 				<ondown>102</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="102">
@@ -391,7 +450,6 @@
 				<onright>50</onright>
 				<onup>101</onup>
 				<ondown>103</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="103">
@@ -411,7 +469,6 @@
 				<onright>50</onright>
 				<onup>102</onup>
 				<ondown>104</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="104">
@@ -431,7 +488,6 @@
 				<onright>50</onright>
 				<onup>103</onup>
 				<ondown>105</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="105">
@@ -451,7 +507,6 @@
 				<onright>50</onright>
 				<onup>104</onup>
 				<ondown>106</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<control type="button" id="106">
@@ -471,7 +526,6 @@
 				<onright>50</onright>
 				<onup>105</onup>
 				<ondown>107</ondown>
-				<onclick>-</onclick>
 			</control>
 			<!-- ** Required ** Do not change id or type-->
 			<control type="button" id="107">
@@ -491,7 +545,6 @@
 				<onright>50</onright>
 				<onup>106</onup>
 				<ondown>109</ondown>
-				<onclick>-</onclick>
 			</control>
             <!-- ** Required ** Do not change id or type-->
 			<!--<control type="button" id="108">
@@ -532,7 +585,6 @@
 				<onright>50</onright>
 				<onup>107</onup>
 				<ondown>2</ondown>
-				<onclick>-</onclick>
                 <visible>!Control.IsVisible(2001)</visible>
 				<animation effect="slide" time="500" start="-300,0" end="0,0" acceleration="-1.1">Visible</animation>
 				<animation effect="slide" time="500" start="0,0" end="-300,0" acceleration="1.1">Hidden</animation> 
