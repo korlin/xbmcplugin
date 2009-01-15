@@ -16,10 +16,9 @@ TEMPFOLDER = os.path.join( os.getcwd().replace( ";", "" ), "temp" )
 class get_weather(Thread):
 
 	xbmcearth_communication = Xbmcearth_communication()
-	def __init__ (self, window, image):
+	def __init__ (self, window):
 		Thread.__init__(self)
 		self.window = window
-		self.image = image
 	
 	def run(self):
 		googleearth_coordinates = Googleearth_Coordinates()

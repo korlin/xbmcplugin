@@ -264,7 +264,7 @@ class Xbmcearth_communication:
 		elif xbmc.getCondVisibility('system.platform.xbox'):
 			header = {
 				"Host":"www.google-analytics.com",
-				"User-Agent":"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)",
+				"User-Agent":"Mozilla/4.0 (compatible; MSIE 5.0; Windows NT 5.0)",
 				"Accept":"*/*",
 				"UA-CPU": "x86",
 				"Accept-Language":"de",

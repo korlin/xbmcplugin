@@ -1,9 +1,3 @@
-#http://api.flickr.com/services/rest/?method=flickr.photos.search&format=json&api_key=7458156304b50b74b675aca223f44d28&min_upload_date=977957078&sort=interestingness-desc&bbox=13.011494%2C52.023480%2C13.911494%2C52.923480&extras=+date_taken%2C+owner_name%2C+geo%2C+o_dims%2C&per_page=20
-#http://picasaweb.google.com/data/feed/api/featured?bbox=13.011494,52.023480,13.911494,52.923480&max-results=20&alt=json
-#http://www.locr.com/api/get_photos_json.php?longitudemin=13.011494&latitudemin=52.023480&longitudemax=13.911494&latitudemax=52.923480&category=popularity&locr=true
-#http://iploc.mwudka.com/iploc/json
-#http://www.programmableweb.com/apitag/mapping/2
-#http://wms.jpl.nasa.gov/tiled.html
 
 import xbmc, xbmcgui, time, threading, datetime, os, urllib, httplib, sys, glob, random, traceback
 
@@ -13,8 +7,8 @@ except: Emulating = False
 # Script constants
 __scriptname__ = "XBMC Earth"
 __author__ = "MrLight"
-__version__ = "0.42"
-__date__ = '09-01-2009'
+__version__ = "0.50"
+__date__ = '15-01-2009'
 xbmc.output(__scriptname__ + " Version: " + __version__ + " Date: " + __date__)
 
 
@@ -123,7 +117,6 @@ class MainClass(xbmcgui.WindowXML):
 		self.set.read_settings()
 		self.init_startup_values()
 
-		print os.name
 		#Clear cached Files
 		self.cleanup_thread = file_remove(self)
 		self.cleanup_thread.start()
@@ -1267,7 +1260,7 @@ class MainClass(xbmcgui.WindowXML):
 			#youtube
 			self.zoom_to_youtube()
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('type')  == "webcams":
-			#youtube
+			#webcams
 			self.zoom_to_webcams()
 		elif self.getListItem(self.getCurrentListPosition()).getProperty('lon') != '' and self.getListItem(self.getCurrentListPosition()).getProperty('lat') != '':
 			lon_temp = float(self.getListItem(self.getCurrentListPosition()).getProperty('lon'))
@@ -1390,9 +1383,7 @@ class MainClass(xbmcgui.WindowXML):
 				coord_dist = googleearth_coordinates.getLatLong(coord)
 				self.lon = self.lon - coord_dist[2]
 				self.drawSAT()
-				#self.overlaywindow = Pic_GUI("script-%s-pic.xml" % ( __scriptname__.replace( " ", "_" ), ), os.getcwd(), "Default", 0,pic="", width="425", height="350", mainWindow = self)
-				#self.overlaywindow.tryYoutube()
-					
+
 				self.xbmcearth_communication.connect("www.youtube.com")
 				result = self.xbmcearth_communication.get_Youtube_html(referer_url,"?v="+self.getListItem(self.getCurrentListPosition()).getProperty('video_id'))
 				if result != False:
@@ -1497,7 +1488,7 @@ class MainClass(xbmcgui.WindowXML):
 		"""
 		if self.show_weather == True:
 			import weather
-			weatherdata = weather.get_weather(self,self.nasa_view)
+			weatherdata = weather.get_weather(self)
 			weatherdata.start()
 		sat = draw_sat(self,self.satBlocks)
 		sat.start()
@@ -1575,8 +1566,7 @@ class MainClass(xbmcgui.WindowXML):
 		else:
 			d.path((-130,-80),path,p)
 		d.flush()
-		
-		#d.text((3,3), text, font=font, fill=(r(0,255),r(0,255),r(0,255),r(128,255)))
+
 		im = im.filter(ImageFilter.EDGE_ENHANCE_MORE)
 		# write image to filesystem
 		im.save(TEMPFOLDER + '\\Route\\Route.png', format=fmt,**{"optimize":1})
@@ -1729,7 +1719,6 @@ class draw_sat(Thread):
 			resultset =[]
 			coord_dist = googleearth_coordinates.getLatLong(coord)
 			
-			#/maps?spn=0.008115,0.021458&t=k&z=15&key=ABQIAAAAnyP-GOJDhG7H7ozm0RRsCBSiQ_eECfBHgA9cMSxRoMYUiueUzxSinT-_iJIghikcXgs_lmKq8_i5pQ&vp=50.927032,11.601734&ev=p&v=24
 			spn = str(coord_dist[2])+','+str(coord_dist[3])
 			t = 'k'
 			z = str(Zoom)
@@ -1743,8 +1732,6 @@ class draw_sat(Thread):
 			satlist = []
 			map_center_x = int(self.window.map_size_x / 2)
 			map_center_y = int(self.window.map_size_y / 2)
-			current = get_file("http://wms.jpl.nasa.gov/wms.cgi?request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width="+str(768)+"&height="+str(768)+"&bbox="+str(coord_dist[0]-coord_dist[2])+","+str(coord_dist[1]-coord_dist[3])+","+str(coord_dist[0]+coord_dist[2]*2)+","+str(coord_dist[1]+coord_dist[3]*2),"Nasa\\z"+str(Zoom)+"\\"+coord+".jpg", referer_url)
-			current.start()
 			for x in range(self.window.map_size_x):
 				for y in range(self.window.map_size_y):
 					Lon = (self.window.lon - coord_dist[2]*map_center_x)+coord_dist[2]*x

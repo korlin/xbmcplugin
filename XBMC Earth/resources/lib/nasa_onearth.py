@@ -1,3 +1,5 @@
+#http://wms.jpl.nasa.gov/tiled.html
+
 import xbmc, xbmcgui, datetime, tarfile, os, glob, urllib, httplib, sys, os.path, time, datetime, urllib2
 from threading import Thread
 
