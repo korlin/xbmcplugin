@@ -25,7 +25,7 @@ import urllib
 import re
 import time
 import traceback
-from shutil import copytree, rmtree, copy
+from shutil import copytree, rmtree, copy2
 
 class Update:
 	""" Update Class: used to update scripts from http://code.google.com/p/xbmc-scripting/ """
@@ -115,7 +115,9 @@ class Update:
 		# make base backup dir
 		try:
 			os.makedirs(self.backup_base_dir)
-			os.makedirs(os.path.join(self.backup_base_dir,resources))
+		except: pass
+		try:
+			os.makedirs(self.local_backup_dir)
 			print"created dirs=%s" % self.backup_base_dir 
 		except: pass
 		copytree(os.path.join(self.local_dir,'resources'), os.path.join(self.local_backup_dir,'resources'))
@@ -202,17 +204,17 @@ class Update:
 		except:
 			return None, None
 
-	if __name__ == "__main__":
-		print"update.py running from __main__"
-		if len(sys.argv) != 3:
-			xbmcgui.Dialog().ok("Update error",  "Not enough arguments were passed for update")
-			sys.exit(1)
-		try:
-			lang_path = os.path.join('Q:' + os.sep,'scripts', sys.argv[1])
-			up = Update(xbmc.Language( lang_path ).getLocalizedString, sys.argv[1])
-			up.removeOriginal()
-			up.downloadVersion(sys.argv[2])
-			xbmc.executebuiltin('XBMC.RunScript(%s)'%(up.local_dir+'\\default.py'))
-		except:
-			print "failed to start script update from backup copy!"
+if __name__ == "__main__":
+	print"update.py running from __main__"
+	if len(sys.argv) != 3:
+		xbmcgui.Dialog().ok("Update error",  "Not enough arguments were passed for update")
+		sys.exit(1)
+	try:
+		lang_path = os.path.join('Q:' + os.sep,'scripts', sys.argv[1])
+		up = Update(xbmc.Language( lang_path ).getLocalizedString, sys.argv[1])
+		up.removeOriginal()
+		up.downloadVersion(sys.argv[2])
+		xbmc.executebuiltin('XBMC.RunScript(%s)'%(up.local_dir+'\\default.py'))
+	except:
+		print "failed to start script update from backup copy!"
 
