@@ -299,7 +299,7 @@ class GUI(xbmcgui.WindowXML):
 			#if node.nodeType == node.TEXT_NODE:
 			resultcontainer["Placemarks"][index]["link_text"] = node.firstChild.data.encode('latin-1', 'ignore')
 			print node.firstChild.data.encode('latin-1', 'ignore')
-				index = index + 1
+			index = index + 1
 		self.xml_data = resultcontainer
 	
 	
