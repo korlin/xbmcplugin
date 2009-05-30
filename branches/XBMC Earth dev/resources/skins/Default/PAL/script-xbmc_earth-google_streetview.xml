@@ -1,0 +1,111 @@
+
+
+<window>
+	<allowoverlays>false</allowoverlays>
+	<animation effect="fade" time="200">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+    <controls>
+		<!-- StreetView Pic Group -->
+		<control type="group" id="574">
+			<control type="image" id="575">
+				<posx>0</posx>
+				<posy>0</posy>
+				<width>200</width>
+				<height>200</height>
+			</control>
+			<control type="image" id="576">
+			</control>
+			<control type="image" id="577">
+			</control>
+			<control type="image" id="578">
+			</control>
+			<control type="image" id="579">
+			</control>
+			<control type="image" id="580">
+			</control>
+			<control type="image" id="581">
+			</control>
+			<control type="image" id="582">
+			</control>
+			<control type="image" id="583">
+			</control>
+			<control type="image" id="584">
+			</control>
+			<control type="image" id="585">
+			</control>
+			<control type="image" id="586">
+			</control>
+			<control type="image" id="587">
+			</control>
+			<control type="image" id="588">
+			</control>
+			<control type="image" id="589">
+			</control>
+			<control type="image" id="590">
+			</control>
+			<control type="image" id="591">
+			</control>
+			<control type="image" id="592">
+			</control>
+			<control type="image" id="593">
+			</control>
+			<control type="image" id="594">
+			</control>
+			<control type="image" id="595">
+			</control>
+			<control type="image" id="596">
+			</control>
+			<control type="label" id="601">
+				<description>heading label</description>
+				<posx>10</posx>
+				<posy>10</posy>
+				<width>1000</width>
+				<align>left</align>
+				<font>special13</font>
+				<textcolor>DD0000FF</textcolor>
+				<label></label>
+			</control>
+			<control type="label" id="602">
+				<description>heading label</description>
+				<posx>10</posx>
+				<posy>10</posy>
+				<width>1000</width>
+				<align>left</align>
+				<font>special13</font>
+				<textcolor>DD0000FF</textcolor>
+				<label></label>
+			</control>
+			<control type="label" id="603">
+				<description>heading label</description>
+				<posx>10</posx>
+				<posy>10</posy>
+				<width>1000</width>
+				<align>left</align>
+				<font>special13</font>
+				<textcolor>DD0000FF</textcolor>
+				<label></label>
+			</control>
+			<control type="label" id="604">
+				<description>heading label</description>
+				<posx>10</posx>
+				<posy>10</posy>
+				<width>1000</width>
+				<align>left</align>
+				<font>special13</font>
+				<textcolor>DD0000FF</textcolor>
+				<label></label>
+			</control>
+			
+		</control>
+		<control type="label" id="2003">
+			<description>heading label</description>
+			<posx>10</posx>
+			<posy>10</posy>
+			<width>1000</width>
+			<align>left</align>
+			<font>special13</font>
+			<textcolor>DD0000FF</textcolor>
+			<label></label>
+		</control>
+	</controls>
+</window>
