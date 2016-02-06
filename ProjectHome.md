@@ -1,0 +1,1 @@
+This is a Geocoding Plugin for the MediaCenter XBMC www.xbmc.org
